@@ -2,7 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
+#include <math.h>
 #include "vertexData.h"
+#include "point.h"
 
 const char* vertexSimpleCode = "#version 330 core\n"
     "layout(location=0) in vec3 aPos;\n"
@@ -18,14 +20,55 @@ const char* fragmentSimpleCode = "#version 330 core\n"
 
 
 int nbSquares = 0;
+int mouseState;
+int screen_width=800;
+float screen_ratio = 16/9.f;
+int tile_size = 20;
+
+int sign(double num){
+    if(num<0){
+        return -1;
+    }
+    else if(num>0){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
 void windowResizeCallback(GLFWwindow* window,int width, int height){
     glViewport(0,0,width,height);
 }
 
-void normalizePosition(double& xn, double& yn,double pointX, double pointY, double width, double height){
-    // Warning: this function changes the values of xp and xy, be wary !
-    xn = 2*pointX/width -1;
-    yn = -(2*pointY/height -1);
+Point nearestTile(Point point,unsigned int tile_size){
+    Point square = Point(0,0);
+    if(std::fmod(point.x,tile_size) == 0){
+        printf("%lf, in line x\n",point.x);
+        square.x = abs(point.x - tile_size/2.f);
+    }
+    if(std::fmod(point.x,tile_size) == 0){
+        printf("%lf, in line y\n",point.y);
+        square.y = abs(point.y - tile_size/2.f);
+    }
+    if(square.x == 0){
+        unsigned int line_square_x = abs(round(point.x/tile_size)*tile_size);
+        square.x = tile_size/2.f *sign(point.x-line_square_x) + (line_square_x);
+    }
+    if(square.y == 0){
+        unsigned int line_square_y = abs(round(point.y/tile_size)*tile_size);
+        square.y = tile_size/2.f *sign(point.y-line_square_y) + (line_square_y);
+    }
+
+    return square;
+}
+
+Point normalizePosition(Point point_global, double width, double height){
+    // Warning: this function changes the values of xn and yn, be wary !
+    Point normalized = Point(point_global.x,point_global.y);
+    normalized.x = 2*normalized.x/width -1;
+    normalized.y = -(2*normalized.y/height -1);
+    return normalized;
 }
 
 
@@ -36,10 +79,9 @@ void printCursor(GLFWwindow* window){
 }
 
 
-std::vector<float> calculateSquare(std::vector<float> point,int width_pixel,float width_screen,float ratio){
-    // Only the first two values inside point are evaluated, the rest is ignored.
-    float px = point[0];
-    float py = point[1];
+std::vector<float> calculateSquare(Point point,int width_pixel,float width_screen,float ratio){
+    float px = point.x;
+    float py = point.y;
     float width = 2* width_pixel/width_screen /2; // normalize width
     float height = width*ratio;
 
@@ -113,16 +155,17 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
 }
 
 void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int VBO, unsigned int EBO){
-    if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){
-        double xp,yp,xn,yn; // p: pixel, n: normalized
-        int width,height; // window dimensions, in pixels
-        glfwGetWindowSize(window,&width,&height);
-        float ratio = width/float(height);
+    if(mouseState==GLFW_PRESS){
+        int screen_height;
+        glfwGetWindowSize(window,&screen_width,&screen_height);
+        Point point = Point(0,0);
+        glfwGetCursorPos(window,&point.x,&point.y);
+        if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
+            point = nearestTile(point,20);
+            point = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+            drawSquare(vertexDataObject,calculateSquare(point,40,(float)screen_width,screen_ratio),VBO, EBO);
+        }
         
-        glfwGetCursorPos(window,&xp,&yp);
-        normalizePosition(xn,yn,xp,yp,(double)width,(double)height);
-        std::vector<float> points = {(float)xn,(float)yn};
-        drawSquare(vertexDataObject,calculateSquare(points,10,(float)width,ratio),VBO, EBO);
     }
 }
 
@@ -133,11 +176,10 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    
     // Window
-    int width=800;
-    float ratio = 8/6.f;
-    GLFWwindow* app_window =  glfwCreateWindow(width,(int)(width/ratio),"MyDraw",NULL,NULL);
+
+    GLFWwindow* app_window =  glfwCreateWindow(screen_width,(int)(screen_width/screen_ratio),"MyDraw",NULL,NULL);
     
     if(app_window == NULL){
         std::cout << "Error during window creation."<<"\n";
@@ -145,11 +187,15 @@ int main(int argc, char const *argv[])
         return -1;
     }
     glfwMakeContextCurrent(app_window);
+    glfwSetWindowAspectRatio(app_window,16,9);
+
     glfwSetFramebufferSizeCallback(app_window,windowResizeCallback);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout << "Error during GLAD setup." <<"\n";
         return -1;
     }
+
+    glfwSetInputMode(app_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
 
@@ -192,6 +238,7 @@ int main(int argc, char const *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
         processInput(app_window,verts,VBO,EBO);
         
         glUseProgram(shaderProgram);
