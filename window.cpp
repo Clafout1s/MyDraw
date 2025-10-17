@@ -23,7 +23,7 @@ int nbSquares = 0;
 int mouseState;
 int screen_width=800;
 float screen_ratio = 16/9.f;
-int tile_size = 20;
+int tile_size = 10;
 
 int sign(double num){
     if(num<0){
@@ -82,7 +82,7 @@ void printCursor(GLFWwindow* window){
 std::vector<float> calculateSquare(Point point,int width_pixel,float width_screen,float ratio){
     float px = point.x;
     float py = point.y;
-    float width = 2* width_pixel/width_screen /2; // normalize width
+    float width = 2* width_pixel/width_screen; // normalize width
     float height = width*ratio;
 
     std::vector<float> vertices= {
@@ -161,9 +161,9 @@ void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int 
         Point point = Point(0,0);
         glfwGetCursorPos(window,&point.x,&point.y);
         if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
-            point = nearestTile(point,20);
+            point = nearestTile(point,tile_size);
             point = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
-            drawSquare(vertexDataObject,calculateSquare(point,40,(float)screen_width,screen_ratio),VBO, EBO);
+            drawSquare(vertexDataObject,calculateSquare(point,tile_size,(float)screen_width,screen_ratio),VBO, EBO);
         }
         
     }
@@ -198,15 +198,6 @@ int main(int argc, char const *argv[])
     glfwSetInputMode(app_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
-
-    std::vector<float> position = {-0.5,0.1};
-    std::vector<float> position2 = {0.8,0.2};
-    std::vector<float> position3 = {-0.7,-0.8};
-    std::vector<float> position4 = {-2.0,-1.0};
-    
-    std::vector<unsigned int> indices = {
-        0,1,2,1,2,3
-    };
 
     vertexData verts;
 
