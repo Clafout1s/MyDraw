@@ -22,8 +22,9 @@ const char* fragmentSimpleCode = "#version 330 core\n"
 int nbSquares = 0;
 int mouseState;
 int screen_width=800;
-float screen_ratio = 16/9.f;
-int tile_size = 10;
+int screen_height; // Defined by the width and ratio
+float screen_ratio = 1.f;
+double tile_size = 10;
 
 int sign(double num){
     if(num<0){
@@ -39,6 +40,14 @@ int sign(double num){
 
 void windowResizeCallback(GLFWwindow* window,int width, int height){
     glViewport(0,0,width,height);
+    
+    int old_width = screen_width;
+    screen_width = width;
+    screen_height = height;
+    // Ratio should be conserved unless fullscreen
+
+    tile_size *= (screen_width/(float)old_width);
+
 }
 
 Point nearestTile(Point point,unsigned int tile_size){
@@ -155,9 +164,8 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
 }
 
 void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int VBO, unsigned int EBO){
+
     if(mouseState==GLFW_PRESS){
-        int screen_height;
-        glfwGetWindowSize(window,&screen_width,&screen_height);
         Point point = Point(0,0);
         glfwGetCursorPos(window,&point.x,&point.y);
         if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
@@ -176,10 +184,12 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     
     // Window
 
-    GLFWwindow* app_window =  glfwCreateWindow(screen_width,(int)(screen_width/screen_ratio),"MyDraw",NULL,NULL);
+    screen_height = (int)(screen_width/screen_ratio);
+    GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
     
     if(app_window == NULL){
         std::cout << "Error during window creation."<<"\n";
@@ -187,7 +197,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
     glfwMakeContextCurrent(app_window);
-    glfwSetWindowAspectRatio(app_window,16,9);
+    glfwSetWindowAspectRatio(app_window,1,1);    
 
     glfwSetFramebufferSizeCallback(app_window,windowResizeCallback);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
@@ -224,11 +234,9 @@ int main(int argc, char const *argv[])
 
     int count = 2;    
 
-
     while(!glfwWindowShouldClose(app_window)){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
         mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
         processInput(app_window,verts,VBO,EBO);
         
