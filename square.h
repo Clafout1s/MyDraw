@@ -7,9 +7,21 @@
 
 class Square{
     public:
-        Point top_left,top_right,down_left,down_right;
+    Point top_left,top_right,down_left,down_right;
 
     Square(Point tl,Point tr,Point dl,Point dr): top_left(tl),top_right(tr),down_left(dl),down_right(dr) {};
+    Square(Point center,double width,double height){
+        // height is in case coordinates needs deforming to make a square (such as centered coordinates on rectangle).
+
+        top_left =  Point(center.x-(width/2), center.y-(height/2));
+        top_right = Point(center.x+(width/2), center.y-(height/2));
+        down_left = Point(center.x-(width/2), center.y+(height/2));
+        down_right = Point(center.x+(width/2), center.y+(height/2));
+    }
+    Square(Point center,double width){
+        Square(center,width,width);
+    }
+
 
     bool operator== (const Square& other){
         return (top_left == other.top_left && top_right==other.top_right && 

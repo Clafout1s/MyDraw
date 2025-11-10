@@ -308,8 +308,11 @@ CMakeFiles/App.dir/window.cpp.o: ../window.cpp \
   /usr/include/c++/11/bits/unordered_map.h \
   /usr/include/c++/11/bits/erase_if.h \
   /usr/include/c++/11/pstl/execution_defs.h \
-  ../point.h
+  ../point.h \
+  ../square.h
 
+
+../square.h:
 
 /usr/include/c++/11/bits/erase_if.h:
 

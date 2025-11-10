@@ -26,6 +26,9 @@ int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
 double tile_size = 10;
 
+std::vector<double> vertex_list;
+
+
 int sign(double num){
     if(num<0){
         return -1;
@@ -88,35 +91,32 @@ void printCursor(GLFWwindow* window){
 }
 
 
-std::vector<float> calculateSquare(Point point,int width_pixel,float width_screen,float ratio){
-    float px = point.x;
-    float py = point.y;
+Square calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
     float width = 2* width_pixel/width_screen; // normalize width
     float height = width*ratio;
 
-    std::vector<float> vertices= {
-        px-(width/2), py-(height/2), 0.f,
-        px+(width/2), py-(height/2), 0.f,
-        px-(width/2), py+(height/2), 0.f,
-        px+(width/2), py+(height/2), 0.f
- 
-    };
+    Square square = Square(point,width,height);
     
-    return vertices;
+
+    return square;
 }
 
-void drawFigure(const vertexData& figure_data, unsigned int VBO, unsigned int EBO){
+void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
+    std::vector<double> data_list = figure_data.list();
+    printf("%ld\n",data_list.size()*sizeof(double));
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*figure_data.vertices.size(), &figure_data.vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(double)*data_list.size(), &data_list[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*figure_data.indices.size(),&figure_data.indices[0],GL_STATIC_DRAW);
+
 }
 
-void drawSquare(vertexData& original_data ,std::vector<float> new_vertices, unsigned int VBO, unsigned int EBO){
+void drawSquare(vertexData& original_data ,Square new_square, unsigned int VBO, unsigned int EBO){
     std::vector<unsigned int> indices = {0,1,2,1,2,3};
-    vertexData* new_data= new vertexData(new_vertices,indices);
-    original_data+= *new_data;
+    vertexData new_data= vertexData(new_square,indices);
+    original_data+= new_data;
     nbSquares++;
     drawFigure(original_data,VBO,EBO);
     
@@ -167,7 +167,6 @@ void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int 
 
     if(mouseState==GLFW_PRESS){
         Point point = Point(0,0);
-        std::cout << vertexDataObject.vertices.size() << "\n";
         glfwGetCursorPos(window,&point.x,&point.y);
         if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
             point = nearestTile(point,tile_size);
@@ -229,22 +228,25 @@ int main(int argc, char const *argv[])
 
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+    glVertexAttribPointer(0,3,GL_DOUBLE,GL_FALSE,3*sizeof(double),(void*)0);
     glEnableVertexAttribArray(0);
 
     int count = 2;    
+
+    vertexData vertest;
 
     while(!glfwWindowShouldClose(app_window)){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
         processInput(app_window,verts,VBO,EBO);
-        
+
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
         
-        glDrawElements(GL_TRIANGLES,nbSquares*2*3,GL_UNSIGNED_INT,0); //number 2: total number of vertices
+        
+        glDrawElements(GL_TRIANGLES,nbSquares*3*2,GL_UNSIGNED_INT,0); //number 2: total number of vertices
         glBindVertexArray(0);
 
         // Necessary for any window

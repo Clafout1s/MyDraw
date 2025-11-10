@@ -13,7 +13,7 @@ class Point{
 
     Point(double xp,double yp, double zp): x(xp),y(yp),z(zp){};
     Point(double xp,double yp): x(xp),y(yp),z(0){};
-
+    Point(): x(0),y(0),z(0) {};
     
     Point& operator+=(const Point& other){
         this->x+= other.x;
