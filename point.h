@@ -1,6 +1,10 @@
 #ifndef MY_POINT_H
 #define MY_POINT_H
 
+#include <iostream>
+#include <vector>
+
+
 class Point{
     public:
         double x;
@@ -18,17 +22,32 @@ class Point{
         return *this;
     }
 
+    bool operator==(const Point& b){
+        return (x == b.x && y==b.y && z==b.z);
+    }
+
+    std::vector<double> list(){
+        std::vector<double> points;
+
+        points.insert(points.end(),x);
+        points.insert(points.end(),y);
+        points.insert(points.end(),z);
+
+        return points;
+    }
+
+    
+
 };
 
 Point operator+(const Point& first,const Point& other){
     return Point(first.x+other.x,first.y+other.y,first.z+other.z);
 }
 
-Point operator/(const Point& first,double diviser){
-    if(diviser == 0){
-        return first;
-    }
-    return Point(first.x/diviser,first.y/diviser,first.z/diviser);
+
+
+void printPoint(const Point& p){
+    std::cout << p.x <<", "<<p.y<<", "<<p.z<<"\n";
 }
 
 #endif

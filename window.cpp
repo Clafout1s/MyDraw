@@ -95,10 +95,10 @@ std::vector<float> calculateSquare(Point point,int width_pixel,float width_scree
     float height = width*ratio;
 
     std::vector<float> vertices= {
-        px-(width/2), py+(height/2), 0.f,
-        px+(width/2), py+(height/2), 0.f,
         px-(width/2), py-(height/2), 0.f,
-        px+(width/2), py-(height/2), 0.f
+        px+(width/2), py-(height/2), 0.f,
+        px-(width/2), py+(height/2), 0.f,
+        px+(width/2), py+(height/2), 0.f
  
     };
     
@@ -167,6 +167,7 @@ void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int 
 
     if(mouseState==GLFW_PRESS){
         Point point = Point(0,0);
+        std::cout << vertexDataObject.vertices.size() << "\n";
         glfwGetCursorPos(window,&point.x,&point.y);
         if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
             point = nearestTile(point,tile_size);
@@ -187,7 +188,6 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     
     // Window
-
     screen_height = (int)(screen_width/screen_ratio);
     GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
     

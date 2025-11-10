@@ -2,6 +2,8 @@
 #define MY_VERTEX_DATA_H_
 
 #include <vector>
+#include <algorithm>
+#include "point.h"
 
 class vertexData{
     public:
@@ -18,6 +20,20 @@ class vertexData{
                 this->indices = v2.indices;
                 return *this;
             }
+            /*
+            bool identical = true;
+            std::cout << "size: " << v2.vertices.size() << "\n";
+            for(int i=0;i<v2.vertices.size();i++){
+                std::cout << "point: " <<v2.vertices[i] <<"\n";
+                if((std::find(vertices.begin(),vertices.end(),v2.vertices[i]))== vertices.end()){
+                    std::cout << "different\n";
+                    identical = false;
+                }
+                
+            }
+            if(identical){
+                return *this;
+            }*/
             for (size_t i = 0; i < v2.vertices.size(); i++)
             {
                 vertices.push_back(v2.vertices[i]);
