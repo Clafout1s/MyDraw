@@ -26,12 +26,17 @@ class Point{
         return (x == b.x && y==b.y && z==b.z);
     }
 
+    Point& operator=(const Point& b){
+        x = b.x; y = b.y; z = b.z;
+        return *this;
+    }
+
     std::vector<double> list(){
         std::vector<double> points;
 
         points.insert(points.end(),x);
         points.insert(points.end(),y);
-        points.insert(points.end(),z);
+        //points.insert(points.end(),z);
 
         return points;
     }

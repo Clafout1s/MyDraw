@@ -42,6 +42,12 @@ class vertexData{
 
             return *this;
         };
+        
+        vertexData& clear(){
+            this->squares.clear();
+            this->indices.clear();
+            return *this;
+        }
 
         std::vector<double> list(){
             std::vector<double> vec;

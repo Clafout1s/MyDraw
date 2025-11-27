@@ -24,7 +24,7 @@ int mouseState;
 int screen_width=800;
 int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
-double tile_size = 10;
+double tile_size = 5;
 
 std::vector<double> vertex_list;
 
@@ -54,12 +54,13 @@ void windowResizeCallback(GLFWwindow* window,int width, int height){
 }
 
 Point nearestTile(Point point,unsigned int tile_size){
+    // Takes arguments in pixel coordinates
     Point square = Point(0,0);
     if(std::fmod(point.x,tile_size) == 0){
         printf("%lf, in line x\n",point.x);
         square.x = abs(point.x - tile_size/2.f);
     }
-    if(std::fmod(point.x,tile_size) == 0){
+    if(std::fmod(point.y,tile_size) == 0){
         printf("%lf, in line y\n",point.y);
         square.y = abs(point.y - tile_size/2.f);
     }
@@ -76,7 +77,6 @@ Point nearestTile(Point point,unsigned int tile_size){
 }
 
 Point normalizePosition(Point point_global, double width, double height){
-    // Warning: this function changes the values of xn and yn, be wary !
     Point normalized = Point(point_global.x,point_global.y);
     normalized.x = 2*normalized.x/width -1;
     normalized.y = -(2*normalized.y/height -1);
@@ -103,7 +103,6 @@ Square calculateSquare(const Point& point,int width_pixel,float width_screen,flo
 
 void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
     std::vector<double> data_list = figure_data.list();
-    printf("%ld\n",data_list.size()*sizeof(double));
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(double)*data_list.size(), &data_list[0], GL_STATIC_DRAW);
@@ -114,6 +113,7 @@ void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
 }
 
 void drawSquare(vertexData& original_data ,Square new_square, unsigned int VBO, unsigned int EBO){
+    // We consider that new_square is in normalized coordinates
     std::vector<unsigned int> indices = {0,1,2,1,2,3};
     vertexData new_data= vertexData(new_square,indices);
     original_data+= new_data;
@@ -163,6 +163,57 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
     return shaderFinal;
 }
 
+void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsigned int EBO){
+    // We consider that start and end are in pixel coordinates
+    double denom_a = (end.x - start.x);
+    double a = (end.y - start.y);
+    if(denom_a != 0){
+        a = a / denom_a;
+    }
+    double b = start.y - a * start.x;
+    double length_x = end.x - start.x;
+    double length_y = end.y - start.y;
+    printf("start: %f %f; end: %f %f\n",start.x,start.y,end.x,end.y);
+    printf("a: %f b: %f\n",a,b);
+    
+    if(abs(length_x) >= abs(length_y)){
+        int n_squares = abs(length_x) / tile_size ;
+        printf("n_squares: %d\n",n_squares);
+        for (size_t i = 1; i < n_squares; i++)
+        {
+            Point new_center = Point();
+            new_center.x = start.x + (double)sign(length_x)*(i*tile_size); 
+            new_center.y = a * new_center.x + b;
+            printPoint(new_center);
+            new_center = nearestTile(new_center,tile_size);
+            
+            new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
+            //printPoint(new_center);
+            drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+        }
+    }
+    else{
+        //printf("%f\n",length_y_temp);
+        int n_squares = abs(length_y) / tile_size ;
+        printf("n_squares: %d\n",n_squares);
+        for (size_t i = 1; i < n_squares; i++)
+        {
+            Point new_center = Point();
+            new_center.y = start.y + (double)sign(length_y)*(i*tile_size);
+            new_center.x = (new_center.y - b)/a;
+            new_center = nearestTile(new_center,tile_size);
+            printPoint(new_center);
+            new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
+            
+            drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+        }
+    }
+    
+}
+
+Point last_point;
+bool last_pressed = false;
+
 void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int VBO, unsigned int EBO){
 
     if(mouseState==GLFW_PRESS){
@@ -170,10 +221,20 @@ void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int 
         glfwGetCursorPos(window,&point.x,&point.y);
         if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
             point = nearestTile(point,tile_size);
-            point = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
-            drawSquare(vertexDataObject,calculateSquare(point,tile_size,(float)screen_width,screen_ratio),VBO, EBO);
+            Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+            
+            if((last_pressed) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
+                //1.5 for floating point errors: points should always be separated by multiples of tile_size
+                printf("Print a line\n");
+                drawLine(vertexDataObject,last_point,point,VBO,EBO);
+            }
+            last_point = point;
+            last_pressed = true;
+            drawSquare(vertexDataObject,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),VBO, EBO);
         }
-        
+    }
+    else if(last_pressed){
+        last_pressed=false;
     }
 }
 
@@ -228,7 +289,7 @@ int main(int argc, char const *argv[])
 
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0,3,GL_DOUBLE,GL_FALSE,3*sizeof(double),(void*)0);
+    glVertexAttribPointer(0,2,GL_DOUBLE,GL_FALSE,2*sizeof(double),(void*)0);
     glEnableVertexAttribArray(0);
 
     int count = 2;    
@@ -246,7 +307,7 @@ int main(int argc, char const *argv[])
         glBindVertexArray(VAO);
         
         
-        glDrawElements(GL_TRIANGLES,nbSquares*3*2,GL_UNSIGNED_INT,0); //number 2: total number of vertices
+        glDrawElements(GL_TRIANGLES,nbSquares*8,GL_UNSIGNED_INT,0); //number 2: total number of vertices
         glBindVertexArray(0);
 
         // Necessary for any window
