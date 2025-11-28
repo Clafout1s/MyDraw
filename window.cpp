@@ -25,9 +25,7 @@ int screen_width=800;
 int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
 double tile_size = 5;
-
-std::vector<double> vertex_list;
-
+vertexData windowVertices;
 
 int sign(double num){
     if(num<0){
@@ -57,11 +55,9 @@ Point nearestTile(Point point,unsigned int tile_size){
     // Takes arguments in pixel coordinates
     Point square = Point(0,0);
     if(std::fmod(point.x,tile_size) == 0){
-        printf("%lf, in line x\n",point.x);
         square.x = abs(point.x - tile_size/2.f);
     }
     if(std::fmod(point.y,tile_size) == 0){
-        printf("%lf, in line y\n",point.y);
         square.y = abs(point.y - tile_size/2.f);
     }
     if(square.x == 0){
@@ -173,36 +169,28 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
     double b = start.y - a * start.x;
     double length_x = end.x - start.x;
     double length_y = end.y - start.y;
-    printf("start: %f %f; end: %f %f\n",start.x,start.y,end.x,end.y);
-    printf("a: %f b: %f\n",a,b);
     
     if(abs(length_x) >= abs(length_y)){
         int n_squares = abs(length_x) / tile_size ;
-        printf("n_squares: %d\n",n_squares);
         for (size_t i = 1; i < n_squares; i++)
         {
             Point new_center = Point();
             new_center.x = start.x + (double)sign(length_x)*(i*tile_size); 
             new_center.y = a * new_center.x + b;
-            printPoint(new_center);
             new_center = nearestTile(new_center,tile_size);
             
             new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
-            //printPoint(new_center);
             drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
         }
     }
     else{
-        //printf("%f\n",length_y_temp);
         int n_squares = abs(length_y) / tile_size ;
-        printf("n_squares: %d\n",n_squares);
         for (size_t i = 1; i < n_squares; i++)
         {
             Point new_center = Point();
             new_center.y = start.y + (double)sign(length_y)*(i*tile_size);
             new_center.x = (new_center.y - b)/a;
             new_center = nearestTile(new_center,tile_size);
-            printPoint(new_center);
             new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
             
             drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
@@ -212,7 +200,7 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
 }
 
 Point last_point;
-bool last_pressed = false;
+bool last_clicked = false;
 
 void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int VBO, unsigned int EBO){
 
@@ -223,18 +211,40 @@ void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int 
             point = nearestTile(point,tile_size);
             Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
             
-            if((last_pressed) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
+            if((last_clicked) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
                 //1.5 for floating point errors: points should always be separated by multiples of tile_size
-                printf("Print a line\n");
                 drawLine(vertexDataObject,last_point,point,VBO,EBO);
             }
             last_point = point;
-            last_pressed = true;
+            last_clicked = true;
             drawSquare(vertexDataObject,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),VBO, EBO);
         }
     }
-    else if(last_pressed){
-        last_pressed=false;
+    else if(last_clicked){
+        last_clicked=false;
+    }
+    if(glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS){
+        printf("Clear\n");
+        vertexDataObject.clear();
+        nbSquares = 0;
+        drawFigure(vertexDataObject,VBO,EBO);
+    }
+    if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+        printf("Erase Mode\n");
+        Point point = Point(0,0);
+        glfwGetCursorPos(window,&point.x,&point.y);
+        point = normalizePosition(nearestTile(point,tile_size),(double)screen_width,(double)screen_width/screen_ratio);
+        bool res = vertexDataObject.delete_square(point);
+        if(res){
+            nbSquares--;
+            drawFigure(vertexDataObject,VBO,EBO);
+        }
+        
+    }
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        printf("Draw Mode\n");
+        
+        drawFigure(vertexDataObject,VBO,EBO);
     }
 }
 
@@ -266,10 +276,9 @@ int main(int argc, char const *argv[])
     }
 
     glfwSetInputMode(app_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+    glfwSetInputMode(app_window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
-
-    vertexData verts;
 
     unsigned int VBO;
     glGenBuffers(1,&VBO);
@@ -294,13 +303,11 @@ int main(int argc, char const *argv[])
 
     int count = 2;    
 
-    vertexData vertest;
-
     while(!glfwWindowShouldClose(app_window)){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
-        processInput(app_window,verts,VBO,EBO);
+        processInput(app_window,windowVertices,VBO,EBO);
 
         glUseProgram(shaderProgram);
 

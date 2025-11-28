@@ -42,6 +42,32 @@ class vertexData{
 
             return *this;
         };
+
+        /**
+         * Returns the index of the first square from which its center point is equals to point.
+         * If none is found, returns -1
+         */
+        int search(Point& point){
+            size_t i = 0;
+            while (i < this->squares.size())
+            {
+                if(this->squares[i].center_p == point){
+                    return i;
+                }
+                i++;
+            }
+            return -1;
+        }
+
+        bool delete_square(Point& point){
+            int i_del = this->search(point);
+            if(i_del >= 0){
+                this->squares.erase(this->squares.begin()+i_del);
+                return true;
+                
+            }
+            return false;
+        }
         
         vertexData& clear(){
             this->squares.clear();
@@ -61,34 +87,4 @@ class vertexData{
         }
         
 };
-
-/*
-inline void printVertexData(const vertexData& v){
-    std::cout << "Vertices: \n";
-    for (size_t i = 0; i < v.squares.size(); i++)
-    {
-        if(i+1 %3==0){
-            std::cout << "\n";
-        }
-        std::cout << v.squares[i];
-        if(i+1 < v.vertices.size()){
-            std::cout <<", ";
-        }
-    }
-    std::cout << "\n";
-
-    std::cout << "Indices: \n";
-    for (size_t i = 0; i < v.indices.size(); i++)
-    {
-        if(i+1 %3==0){
-            std::cout << "\n";
-        }
-        std::cout << v.indices[i];
-        if(i+1 < v.indices.size()){
-            std::cout <<", ";
-        }
-    }
-    std::cout << "\n";
-}
-*/
 #endif
