@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
+#include <bits/stdc++.h>
 #include <math.h>
 #include "vertexData.h"
 #include "point.h"
@@ -26,6 +27,8 @@ int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
 double tile_size = 5;
 vertexData windowVertices;
+unsigned int MAIN_SC_VBO;
+unsigned int MAIN_SC_EBO;
 
 int sign(double num){
     if(num<0){
@@ -198,53 +201,65 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
     }
     
 }
-
 Point last_point;
+bool erase_mod = false;
 bool last_clicked = false;
 
-void processInput(GLFWwindow* window,vertexData& vertexDataObject, unsigned int VBO, unsigned int EBO){
+
+void processInput(GLFWwindow* window){
 
     if(mouseState==GLFW_PRESS){
-        Point point = Point(0,0);
-        glfwGetCursorPos(window,&point.x,&point.y);
-        if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
-            point = nearestTile(point,tile_size);
-            Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
-            
-            if((last_clicked) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
-                //1.5 for floating point errors: points should always be separated by multiples of tile_size
-                drawLine(vertexDataObject,last_point,point,VBO,EBO);
+        if(!erase_mod){
+            Point point = Point(0,0);
+            glfwGetCursorPos(window,&point.x,&point.y);
+            if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
+                point = nearestTile(point,tile_size);
+                Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+                
+                if((last_clicked) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
+                    //1.5 for floating point errors: points should always be separated by multiples of tile_size
+                    drawLine(windowVertices,last_point,point,MAIN_SC_VBO,MAIN_SC_EBO);
+                }
+                last_point = point;
+                last_clicked = true;
+                drawSquare(windowVertices,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),MAIN_SC_VBO, MAIN_SC_EBO);
             }
-            last_point = point;
-            last_clicked = true;
-            drawSquare(vertexDataObject,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),VBO, EBO);
+            else{
+                last_clicked=false;
+            }
+        }
+        
+        else{
+            Point point = Point(0,0);
+            glfwGetCursorPos(window,&point.x,&point.y);
+            point = normalizePosition(nearestTile(point,tile_size),(double)screen_width,(double)screen_width/screen_ratio);
+            bool res = windowVertices.delete_square(point);
+            if(res){
+                nbSquares--;
+                drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+            }
         }
     }
     else if(last_clicked){
         last_clicked=false;
     }
-    if(glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS){
-        printf("Clear\n");
-        vertexDataObject.clear();
-        nbSquares = 0;
-        drawFigure(vertexDataObject,VBO,EBO);
-    }
-    if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_E && action == GLFW_PRESS){
         printf("Erase Mode\n");
-        Point point = Point(0,0);
-        glfwGetCursorPos(window,&point.x,&point.y);
-        point = normalizePosition(nearestTile(point,tile_size),(double)screen_width,(double)screen_width/screen_ratio);
-        bool res = vertexDataObject.delete_square(point);
-        if(res){
-            nbSquares--;
-            drawFigure(vertexDataObject,VBO,EBO);
-        }
-        
+        erase_mod = true;
     }
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-        printf("Draw Mode\n");
-        
-        drawFigure(vertexDataObject,VBO,EBO);
+    else if(key == GLFW_KEY_C && action == GLFW_PRESS){
+        printf("Clear\n");
+        windowVertices.clear();
+        nbSquares = 0;
+        drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+    }
+    else if(key == GLFW_KEY_D && action == GLFW_PRESS){
+        printf("Draw mode");
+        erase_mod = false;
     }
 }
 
@@ -276,28 +291,27 @@ int main(int argc, char const *argv[])
     }
 
     glfwSetInputMode(app_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+    glfwSetKeyCallback(app_window, key_callback);
     glfwSetInputMode(app_window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
 
-    unsigned int VBO;
-    glGenBuffers(1,&VBO);
+    glGenBuffers(1,&MAIN_SC_VBO);
 
-    unsigned int EBO;
-    glGenBuffers(1,&EBO);
+    glGenBuffers(1,&MAIN_SC_EBO);
     
     unsigned int VAO;
     glGenVertexArrays(1,&VAO);
     glBindVertexArray(VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
     glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,MAIN_SC_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,0,0,GL_STATIC_DRAW);
 
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
     glVertexAttribPointer(0,2,GL_DOUBLE,GL_FALSE,2*sizeof(double),(void*)0);
     glEnableVertexAttribArray(0);
 
@@ -307,7 +321,7 @@ int main(int argc, char const *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
-        processInput(app_window,windowVertices,VBO,EBO);
+        processInput(app_window);
 
         glUseProgram(shaderProgram);
 
