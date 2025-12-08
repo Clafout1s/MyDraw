@@ -4,18 +4,17 @@
 #include <iostream>
 #include <vector>
 #include "point.h"
-#include "rectangle.h"
 
-class Square{
+class Rectangle{
     public:
     Point top_left,top_right,down_left,down_right,center_p;
 
-    Square(Point tl,Point tr,Point dl,Point dr): top_left(tl),top_right(tr),down_left(dl),down_right(dr) {
+    Rectangle(Point tl,Point tr,Point dl,Point dr): top_left(tl),top_right(tr),down_left(dl),down_right(dr) {
         double w = top_right.x - top_left.x;
         double h = down_left.y -top_left.y;
         center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
     };
-    Square(Point center,double width,double height){
+    Rectangle(Point center,double width,double height){
         // height is in case coordinates needs deforming to make a square (such as centered coordinates on rectangle).
         center_p = center;
         
@@ -24,14 +23,14 @@ class Square{
         down_left = Point(center.x-(width/2), center.y-(height/2));
         down_right = Point(center.x+(width/2), center.y-(height/2));
     }
-    Square(Point center,double width):Square(center,width,width){}
+    Rectangle(Point center,double width):Rectangle(center,width,width){}
 
-    bool operator== (const Square& other){
+    bool operator== (const Rectangle& other){
         return (top_left == other.top_left && top_right==other.top_right && 
         down_left==other.down_left && down_right==other.down_right);
     }
 
-    bool does_include(Square other){
+    bool does_include(Rectangle other){
         return other.top_left.x >= top_left.x && other.down_right.x <= down_right.x && 
             other.top_right.y <= top_right.y && other.down_left.y >= down_left.y;
     }
@@ -55,8 +54,8 @@ class Square{
     }
 };
 
-void printSquare(Square& sq){
-    printf("Square: \n");
+void printRectangle(Rectangle& sq){
+    printf("Rectangle: \n");
     printf("    ");
     printPoint(sq.top_left);
     printf("    ");

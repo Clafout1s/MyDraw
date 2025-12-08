@@ -45,9 +45,10 @@ class vertexData{
 
         /**
          * Returns the index of the first square from which its center point is equals to point.
+         * Only works for squares of the same size.
          * If none is found, returns -1
          */
-        int search(Point& point){
+        int search_perfect(Point& point){
             size_t i = 0;
             while (i < this->squares.size())
             {
@@ -59,14 +60,48 @@ class vertexData{
             return -1;
         }
 
-        bool delete_square(Point& point){
-            int i_del = this->search(point);
-            if(i_del >= 0){
-                this->squares.erase(this->squares.begin()+i_del);
-                return true;
-                
+        /**
+         * Returns the indices of all the squares that are included into this one, in their apparition order.
+         * Only works for squares of the same size.
+         * If none is found, returns -1
+         */
+        std::vector<unsigned int> search_all_included(Square& big){
+            std::vector<unsigned int> found = {};
+            for (size_t i = 0; i < squares.size(); i++)
+            {
+                if(big.does_include(squares[i])){
+                    printf("big\n");
+                    printPoint(big.top_left);
+                    printPoint(big.top_right);
+                    printPoint(big.down_left);
+                    printPoint(big.down_right);
+                    printf("small\n");
+                    printPoint(squares[i].top_left);
+                    printPoint(squares[i].top_right);
+                    printPoint(squares[i].down_left);
+                    printPoint(squares[i].down_right);
+                    printf("--------------\n\n");
+                    found.insert(found.end(),i);
+                }
             }
-            return false;
+            
+            return found;
+        }
+
+        size_t delete_squares(Square& eraser,int size){
+            printf("delete\n");
+            std::vector<unsigned int> delete_list = this->search_all_included(eraser);
+            size_t deleted = 0;
+            for (size_t i = 0; i < delete_list.size(); i++)
+            {
+
+                this->squares.erase(this->squares.begin()+delete_list[i]+deleted); 
+                // deleted is to account for the squares list changing its indices when deleting an element
+                // it can ONLY be done like this because delete_list is in the same order as the apparition of the corresponding squares.
+                deleted++;
+
+            }
+            return deleted;
         }
         
         vertexData& clear(){

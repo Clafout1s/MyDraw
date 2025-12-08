@@ -332,4 +332,5 @@ CMakeFiles/App.dir/window.cpp.o: \
  /usr/include/c++/11/variant /usr/include/c++/11/math.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/vertexData.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/point.h \
- /home/louna/Documents/GraphicsPrograming/MyDraw/square.h
+ /home/louna/Documents/GraphicsPrograming/MyDraw/square.h \
+ /home/louna/Documents/GraphicsPrograming/MyDraw/rectangle.h

@@ -26,6 +26,7 @@ int screen_width=800;
 int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
 double tile_size = 5;
+double tile_ratio = 1;
 vertexData windowVertices;
 unsigned int MAIN_SC_VBO;
 unsigned int MAIN_SC_EBO;
@@ -54,25 +55,25 @@ void windowResizeCallback(GLFWwindow* window,int width, int height){
 
 }
 
-Point nearestTile(Point point,unsigned int tile_size){
+Point nearestTile(Point point,unsigned int size){
     // Takes arguments in pixel coordinates
-    Point square = Point(0,0);
-    if(std::fmod(point.x,tile_size) == 0){
-        square.x = abs(point.x - tile_size/2.f);
+    Point center = Point(0,0);
+    if(std::fmod(point.x,size) == 0){
+        center.x = abs(point.x - size/2.f);
     }
-    if(std::fmod(point.y,tile_size) == 0){
-        square.y = abs(point.y - tile_size/2.f);
+    if(std::fmod(point.y,size) == 0){
+        center.y = abs(point.y - size/2.f);
     }
-    if(square.x == 0){
-        unsigned int line_square_x = abs(round(point.x/tile_size)*tile_size);
-        square.x = tile_size/2.f *sign(point.x-line_square_x) + (line_square_x);
+    if(center.x == 0){
+        unsigned int line_square_x = abs(round(point.x/size)*size);
+        center.x = size/2.f *sign(point.x-line_square_x) + (line_square_x);
     }
-    if(square.y == 0){
-        unsigned int line_square_y = abs(round(point.y/tile_size)*tile_size);
-        square.y = tile_size/2.f *sign(point.y-line_square_y) + (line_square_y);
+    if(center.y == 0){
+        unsigned int line_square_y = abs(round(point.y/size)*size);
+        center.y = size/2.f *sign(point.y-line_square_y) + (line_square_y);
     }
 
-    return square;
+    return center;
 }
 
 Point normalizePosition(Point point_global, double width, double height){
@@ -210,6 +211,7 @@ void processInput(GLFWwindow* window){
 
     if(mouseState==GLFW_PRESS){
         if(!erase_mod){
+            // Draw
             Point point = Point(0,0);
             glfwGetCursorPos(window,&point.x,&point.y);
             if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
@@ -230,12 +232,16 @@ void processInput(GLFWwindow* window){
         }
         
         else{
+            // Erase
             Point point = Point(0,0);
             glfwGetCursorPos(window,&point.x,&point.y);
-            point = normalizePosition(nearestTile(point,tile_size),(double)screen_width,(double)screen_width/screen_ratio);
-            bool res = windowVertices.delete_square(point);
-            if(res){
-                nbSquares--;
+            
+            point = nearestTile(point,tile_size);
+            Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+            Square eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+            size_t del = windowVertices.delete_squares(eraser,tile_size);
+            if(del != 0){
+                nbSquares-=del;
                 drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
             }
         }
@@ -258,8 +264,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
     }
     else if(key == GLFW_KEY_D && action == GLFW_PRESS){
-        printf("Draw mode");
+        printf("Draw mode\n");
         erase_mod = false;
+    }
+    else if(key == GLFW_KEY_KP_ADD && action == GLFW_PRESS){
+        printf("Grow size\n");
+        tile_size *= 2;
+    }
+    else if(key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS){
+        printf("Shrink size\n");
+        if(tile_size/2 >= 1){
+            tile_size /= 2;
+        }
+        
+
     }
 }
 
