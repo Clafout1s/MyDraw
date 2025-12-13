@@ -1,4 +1,3 @@
-/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles/App.dir
 /home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles/Test.dir
 /home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles/edit_cache.dir
 /home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles/rebuild_cache.dir

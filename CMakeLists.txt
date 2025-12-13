@@ -8,7 +8,7 @@ include_directories("include/glad/include")
 set(gladC "include/glad/src/glad.c")
 
 
-add_executable(App window.cpp ${gladC} vertexData.h point.h)
+#add_executable(App window.cpp ${gladC} vertexData.h point.h)
 add_executable(Test test.cpp ${gladC} vertexData.h point.h)
-target_link_libraries(App glfw)
+#target_link_libraries(App glfw)
 target_link_libraries(Test glfw)

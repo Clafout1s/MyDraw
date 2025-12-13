@@ -492,8 +492,11 @@ CMakeFiles/App.dir/window.cpp.o: ../window.cpp \
   /usr/include/c++/11/math.h \
   ../vertexData.h \
   ../point.h \
-  ../square.h
+  ../square.h \
+  ../rectangle.h
 
+
+../rectangle.h:
 
 ../square.h:
 

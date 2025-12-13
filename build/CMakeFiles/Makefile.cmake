@@ -78,7 +78,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/App.dir/DependInfo.cmake"
   "CMakeFiles/Test.dir/DependInfo.cmake"
   "include/glfw-3.4/CMakeFiles/uninstall.dir/DependInfo.cmake"
   "include/glfw-3.4/src/CMakeFiles/glfw.dir/DependInfo.cmake"

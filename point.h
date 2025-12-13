@@ -22,6 +22,16 @@ class Point{
         return *this;
     }
 
+    Point operator+(const Point& other){
+        Point p_new = Point(this->x + other.x, this->y + other.y, this->z + other.z);
+        return p_new;
+    }
+
+    Point operator-(const Point& other){
+        Point p_new = Point(this->x - other.x, this->y - other.y, this->z - other.z);
+        return p_new;
+    }
+
     bool operator==(const Point& b){
         return (x == b.x && y==b.y && z==b.z);
     }
@@ -53,6 +63,10 @@ Point operator+(const Point& first,const Point& other){
 
 void printPoint(const Point& p){
     std::cout << p.x <<", "<<p.y<<", "<<p.z<<"\n";
+}
+
+void printPointGeogebra(const Point& p){
+    std::cout << "("<<p.x<<", "<<p.y<<")";
 }
 
 #endif
