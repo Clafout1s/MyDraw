@@ -7,6 +7,8 @@
 #include "point.h"
 #include "rectangle.h"
 
+class Rectangle;
+void printRectGeogebra(Rectangle& rect);
 
 class Rectangle{
     public:
@@ -120,15 +122,18 @@ class Rectangle{
             return *this;
         }
         else{
-            std::vector<Point> points = {other.top_left,other.top_right,other.down_left,other.down_right};
+            Rectangle small_one = top_right.x - top_left.x > other.top_right.x - other.top_left.x ? other:*this;
+            Rectangle big_one = top_right.x - top_left.x > other.top_right.x - other.top_left.x ? *this:other;
+
+            std::vector<Point> points = {small_one.top_left,small_one.top_right,small_one.down_left,small_one.down_right};
             bool inside = false;
             size_t y = 0;
             while (!inside && y< points.size())
             {
                 // If one of the corners of other is fully inside this Rectangle
-                if(points[y].x < top_right.x && points[y].x > top_left.x &&
-                    points[y].y > down_left.y && points[y].y < top_left.y){
-                        Rectangle small_one = top_right.x - top_left.x > other.top_right.x - other.top_left.x ? other:*this;
+                if(points[y].x < big_one.top_right.x && points[y].x > big_one.top_left.x &&
+                    points[y].y > big_one.down_left.y && points[y].y < big_one.top_left.y){
+                        
                         if(top_left.x > other.top_left.x && top_right.x > other.top_right.x){
                             // If *this is right of other
                             printf("Left\n");
