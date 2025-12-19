@@ -63,6 +63,7 @@ CMAKE_BINARY_DIR = /home/louna/Documents/GraphicsPrograming/MyDraw/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/App.dir/all
 all: CMakeFiles/Test.dir/all
 all: include/glfw-3.4/all
 .PHONY : all
@@ -72,6 +73,7 @@ preinstall: include/glfw-3.4/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/App.dir/clean
 clean: CMakeFiles/Test.dir/clean
 clean: include/glfw-3.4/clean
 .PHONY : clean
@@ -127,13 +129,39 @@ include/glfw-3.4/src/clean: include/glfw-3.4/src/CMakeFiles/update_mappings.dir/
 .PHONY : include/glfw-3.4/src/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/App.dir
+
+# All Build rule for target.
+CMakeFiles/App.dir/all: include/glfw-3.4/src/CMakeFiles/glfw.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=1,2,3 "Built target App"
+.PHONY : CMakeFiles/App.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/App.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles 48
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/App.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles 0
+.PHONY : CMakeFiles/App.dir/rule
+
+# Convenience name for target.
+App: CMakeFiles/App.dir/rule
+.PHONY : App
+
+# clean rule for target.
+CMakeFiles/App.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/clean
+.PHONY : CMakeFiles/App.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/Test.dir
 
 # All Build rule for target.
 CMakeFiles/Test.dir/all: include/glfw-3.4/src/CMakeFiles/glfw.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=1,2,3 "Built target Test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=4,5,6 "Built target Test"
 .PHONY : CMakeFiles/Test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -185,7 +213,7 @@ include/glfw-3.4/CMakeFiles/uninstall.dir/clean:
 include/glfw-3.4/src/CMakeFiles/glfw.dir/all:
 	$(MAKE) $(MAKESILENT) -f include/glfw-3.4/src/CMakeFiles/glfw.dir/build.make include/glfw-3.4/src/CMakeFiles/glfw.dir/depend
 	$(MAKE) $(MAKESILENT) -f include/glfw-3.4/src/CMakeFiles/glfw.dir/build.make include/glfw-3.4/src/CMakeFiles/glfw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48 "Built target glfw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51 "Built target glfw"
 .PHONY : include/glfw-3.4/src/CMakeFiles/glfw.dir/all
 
 # Build rule for subdir invocation for target.
@@ -211,7 +239,7 @@ include/glfw-3.4/src/CMakeFiles/glfw.dir/clean:
 include/glfw-3.4/src/CMakeFiles/update_mappings.dir/all:
 	$(MAKE) $(MAKESILENT) -f include/glfw-3.4/src/CMakeFiles/update_mappings.dir/build.make include/glfw-3.4/src/CMakeFiles/update_mappings.dir/depend
 	$(MAKE) $(MAKESILENT) -f include/glfw-3.4/src/CMakeFiles/update_mappings.dir/build.make include/glfw-3.4/src/CMakeFiles/update_mappings.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=49 "Built target update_mappings"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/louna/Documents/GraphicsPrograming/MyDraw/build/CMakeFiles --progress-num=52 "Built target update_mappings"
 .PHONY : include/glfw-3.4/src/CMakeFiles/update_mappings.dir/all
 
 # Build rule for subdir invocation for target.

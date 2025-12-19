@@ -162,6 +162,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named App
+
+# Build rule for target.
+App: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 App
+.PHONY : App
+
+# fast build rule for target.
+App/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/build
+.PHONY : App/fast
+
+#=============================================================================
 # Target rules for targets named Test
 
 # Build rule for target.
@@ -231,6 +244,7 @@ include/glad/src/glad.o: include/glad/src/glad.c.o
 
 # target to build an object file
 include/glad/src/glad.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/include/glad/src/glad.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/include/glad/src/glad.c.o
 .PHONY : include/glad/src/glad.c.o
 
@@ -239,6 +253,7 @@ include/glad/src/glad.i: include/glad/src/glad.c.i
 
 # target to preprocess a source file
 include/glad/src/glad.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/include/glad/src/glad.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/include/glad/src/glad.c.i
 .PHONY : include/glad/src/glad.c.i
 
@@ -247,6 +262,7 @@ include/glad/src/glad.s: include/glad/src/glad.c.s
 
 # target to generate assembly for a file
 include/glad/src/glad.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/include/glad/src/glad.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/include/glad/src/glad.c.s
 .PHONY : include/glad/src/glad.c.s
 
@@ -274,6 +290,30 @@ test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Test.dir/build.make CMakeFiles/Test.dir/test.cpp.s
 .PHONY : test.cpp.s
 
+window.o: window.cpp.o
+.PHONY : window.o
+
+# target to build an object file
+window.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/window.cpp.o
+.PHONY : window.cpp.o
+
+window.i: window.cpp.i
+.PHONY : window.i
+
+# target to preprocess a source file
+window.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/window.cpp.i
+.PHONY : window.cpp.i
+
+window.s: window.cpp.s
+.PHONY : window.s
+
+# target to generate assembly for a file
+window.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/App.dir/build.make CMakeFiles/App.dir/window.cpp.s
+.PHONY : window.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -289,6 +329,7 @@ help:
 	@echo "... docs"
 	@echo "... uninstall"
 	@echo "... update_mappings"
+	@echo "... App"
 	@echo "... Test"
 	@echo "... glfw"
 	@echo "... include/glad/src/glad.o"
@@ -297,6 +338,9 @@ help:
 	@echo "... test.o"
 	@echo "... test.i"
 	@echo "... test.s"
+	@echo "... window.o"
+	@echo "... window.i"
+	@echo "... window.s"
 .PHONY : help
 
 

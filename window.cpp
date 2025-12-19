@@ -20,7 +20,7 @@ const char* fragmentSimpleCode = "#version 330 core\n"
     "};\n\0";
 
 
-int nbSquares = 0;
+int nbRects = 0;
 int mouseState;
 int screen_width=800;
 int screen_height; // Defined by the width and ratio
@@ -91,11 +91,11 @@ void printCursor(GLFWwindow* window){
 }
 
 
-Square calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
+Rectangle calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
     float width = 2* width_pixel/width_screen; // normalize width
     float height = width*ratio;
 
-    Square square = Square(point,width,height);
+    Rectangle square = Rectangle(point,width,height);
     
 
     return square;
@@ -112,12 +112,12 @@ void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
 
 }
 
-void drawSquare(vertexData& original_data ,Square new_square, unsigned int VBO, unsigned int EBO){
-    // We consider that new_square is in normalized coordinates
+void drawRect(vertexData& original_data ,Rectangle new_rect, unsigned int VBO, unsigned int EBO){
+    // We consider that new_rect is in normalized coordinates
     std::vector<unsigned int> indices = {0,1,2,1,2,3};
-    vertexData new_data= vertexData(new_square,indices);
+    vertexData new_data= vertexData(new_rect,indices);
     original_data+= new_data;
-    nbSquares++;
+    nbRects++;
     drawFigure(original_data,VBO,EBO);
     
 }
@@ -184,7 +184,7 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
             new_center = nearestTile(new_center,tile_size);
             
             new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
-            drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+            drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
         }
     }
     else{
@@ -197,7 +197,7 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
             new_center = nearestTile(new_center,tile_size);
             new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
             
-            drawSquare(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+            drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
         }
     }
     
@@ -224,7 +224,7 @@ void processInput(GLFWwindow* window){
                 }
                 last_point = point;
                 last_clicked = true;
-                drawSquare(windowVertices,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),MAIN_SC_VBO, MAIN_SC_EBO);
+                drawRect(windowVertices,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),MAIN_SC_VBO, MAIN_SC_EBO);
             }
             else{
                 last_clicked=false;
@@ -238,12 +238,13 @@ void processInput(GLFWwindow* window){
             
             point = nearestTile(point,tile_size);
             Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+            /*
             Square eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
             size_t del = windowVertices.delete_squares(eraser,tile_size);
             if(del != 0){
-                nbSquares-=del;
+                nbRects-=del;
                 drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
-            }
+            }*/
         }
     }
     else if(last_clicked){
@@ -260,7 +261,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     else if(key == GLFW_KEY_C && action == GLFW_PRESS){
         printf("Clear\n");
         windowVertices.clear();
-        nbSquares = 0;
+        nbRects = 0;
         drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
     }
     else if(key == GLFW_KEY_D && action == GLFW_PRESS){
@@ -346,7 +347,7 @@ int main(int argc, char const *argv[])
         glBindVertexArray(VAO);
         
         
-        glDrawElements(GL_TRIANGLES,nbSquares*8,GL_UNSIGNED_INT,0); //number 2: total number of vertices
+        glDrawElements(GL_TRIANGLES,nbRects*8,GL_UNSIGNED_INT,0); //number 2: total number of vertices
         glBindVertexArray(0);
 
         // Necessary for any window
