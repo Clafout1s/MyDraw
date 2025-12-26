@@ -14,6 +14,26 @@ class Rectangle{
     public:
     Point top_left,top_right,down_left,down_right,center_p;
 
+    Rectangle(Point tl,Point dr){
+        if(dr.x < tl.x){
+            throw std::invalid_argument("Down right x should be greater than top left x !");
+        }
+        if(dr.y < tl.y){
+            throw std::invalid_argument("Down right y should be greater than top left y !");
+        }
+        if((dr.y == tl.y) || (dr.x==tl.x)){
+            // NULL Rectangle
+            top_left = Point();
+            top_right = Point();
+            down_left = Point();
+            down_right = Point();
+        }
+        top_left = tl;
+        down_right = dr;
+        top_right = Point(down_right.x,top_left.y);
+        down_left = Point(top_left.x,down_right.y);
+    }
+
     Rectangle(Point tl,Point tr,Point dl,Point dr): top_left(tl),top_right(tr),down_left(dl),down_right(dr) {
         if(tl.x != dl.x){
             throw std::invalid_argument("Top left and down left should have the same x coordinates !");
@@ -31,31 +51,23 @@ class Rectangle{
         double w = width();
         double h = height();
 
-        if((h==0 && w!=0) || (h!=0 && w==0)){
-            throw std::invalid_argument("Height and width must be both at 0 (NULL Rectangle), or both positive !");
-        }
         center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
     };
 
-    Rectangle(Point center,double width,double height){
-        // height is in case coordinates needs deforming to make a square (such as centered coordinates on rectangle).
-        if(width<0){
-            throw std::invalid_argument("Width cannot be negative !");
-        }
-        if(height<0){
-            throw std::invalid_argument("Width cannot be negative !");
-        }
-        if((height==0 && width!=0) || (height!=0 && width==0)){
-            throw std::invalid_argument("Height and width must be both at 0 (NULL Rectangle), or both positive !");
-        }
-        
+    Rectangle(Point center,double width,double height){        
         center_p = center;
-        
         top_left =  Point(center.x-(width/2), center.y+(height/2));
         top_right = Point(center.x+(width/2), center.y+(height/2));
         down_left = Point(center.x-(width/2), center.y-(height/2));
         down_right = Point(center.x+(width/2), center.y-(height/2));
+        if(width<0){
+            throw std::invalid_argument("Width should not be negative, "+std::to_string(width)+" is incorrect");
+        }
+        if(height<0){
+            throw std::invalid_argument("Height should not be negative, "+std::to_string(height)+" is incorrect");
+        }
     }
+
     Rectangle(Point center,double width):Rectangle(center,width,width){}
 
     Rectangle():Rectangle(Point(),0){}
@@ -77,13 +89,22 @@ class Rectangle{
         return abs((top_right-top_left).x) == abs((top_left-down_left).y);
     }
 
+    bool isValid(){
+        return (width()>=0 && height()>=0 && top_left.x == down_left.x && top_right.x == down_right.x 
+            && down_left.y == down_right.y && top_left.y == top_right.y);
+    }
+
     bool isNull(){
-        return top_left.x == 0 && down_right.x == 0 && top_left.y == 0 && down_right.y == 0;
+        return width()==0 || height()==0;
     }
 
     bool include(const Rectangle& other){
         return (other.top_left.x >= top_left.x && other.top_right.x <= top_right.x &&
             other.down_left.y >= down_left.y && other.top_left.y <= top_left.y);
+    }
+
+    bool include(const Point& point){
+        return (point.x <= top_right.x && point.x >= top_left.x && point.y <= top_left.y && point.y >= down_left.y);
     }
 
     
@@ -106,88 +127,37 @@ class Rectangle{
         return points;
     }
 
-    /**
-     * Returns the Rectangle that is the intersection of this and other.
-     * The Rectangle is empty if this and other are not intersecting.
-     */
     Rectangle intersects(Rectangle other){
-        Rectangle new_rect = Rectangle();
-        if(other==*this){
-            return new_rect;
-        }
-        if(include(other)){
-            return other;
-        }
-        else if(other.include(*this)){
-            return *this;
-        }
-        else{
-            Rectangle small_one = top_right.x - top_left.x > other.top_right.x - other.top_left.x ? other:*this;
-            Rectangle big_one = top_right.x - top_left.x > other.top_right.x - other.top_left.x ? *this:other;
-
-            std::vector<Point> points = {small_one.top_left,small_one.top_right,small_one.down_left,small_one.down_right};
-            bool inside = false;
-            size_t y = 0;
-            while (!inside && y< points.size())
-            {
-                // If one of the corners of other is fully inside this Rectangle
-                if(points[y].x < big_one.top_right.x && points[y].x > big_one.top_left.x &&
-                    points[y].y > big_one.down_left.y && points[y].y < big_one.top_left.y){
-                        
-                        if(top_left.x > other.top_left.x && top_right.x > other.top_right.x){
-                            // If *this is right of other
-                            printf("Left\n");
-                            new_rect.top_left.x = top_left.x;
-                            new_rect.down_left.x = down_left.x;
-                            new_rect.top_right.x = other.top_right.x;
-                            new_rect.down_right.x = other.down_right.x;
-                        }
-                        else if(top_left.x < other.top_left.x && top_right.x < other.top_right.x){
-                            // If *this is left of other
-                            printf("Right\n");
-                            new_rect.top_left.x = other.top_left.x;
-                            new_rect.down_left.x = other.down_left.x;
-                            new_rect.top_right.x = top_right.x;
-                            new_rect.down_right.x = down_right.x;
-                        }
-                        else{
-                            // If *this and other are fully included into eachother in the x axis
-                            printf("no left no right\n");
-                            new_rect.top_left.x = small_one.top_left.x;
-                            new_rect.down_left.x = small_one.down_left.x;
-                            new_rect.top_right.x = small_one.top_right.x;
-                            new_rect.down_right.x = small_one.down_right.x;
-                        }
-                        if(top_left.y > other.top_left.y && down_left.y > other.down_left.y){
-                            // *this is up of other
-                            printf("down\n");
-                            new_rect.top_left.y = other.top_left.y;
-                            new_rect.top_right.y = other.top_right.y;
-                            new_rect.down_left.y = down_left.y;
-                            new_rect.down_right.y = down_right.y;
-                        }
-                        else if(top_left.y < other.top_left.y && down_left.y < other.down_left.y){
-                            // *this is down of other
-                            printf("up\n");
-                            new_rect.top_left.y = top_left.y;
-                            new_rect.top_right.y = top_right.y;
-                            new_rect.down_left.y = other.down_left.y;
-                            new_rect.down_right.y = other.down_right.y;
-                        }
-                        else{
-                            // If *this and other are fully included into eachother in the y axis
-                            printf("no up no down\n");
-                            new_rect.top_left.y = small_one.top_left.y;
-                            new_rect.top_right.y = small_one.top_right.y;
-                            new_rect.down_left.y = small_one.down_left.y;
-                            new_rect.down_right.y = small_one.down_right.y;
-                        }
-                        inside = true;
-                    }
-                y++;
+        Rectangle inter = Rectangle();
+        if(top_left.x >= other.top_right.x || other.top_left.x >= top_right.x ||
+            top_left.y <= other.down_left.y || other.top_left.y <= down_left.y){
+                // The two rectangles don't intersect with each other
+                return inter;
+            }
+        Point *rec1_points[] = {&top_left,&top_right,&down_left,&down_right};
+        Point* rec2_points[] = {&other.top_left,&other.top_right,&other.down_left,&other.down_right};
+        Point* inter_points[] = {&inter.top_left,&inter.top_right,&inter.down_left,&inter.down_right};
+        bool does_intersects = false;
+        for (size_t i = 0; i < 4; i++)
+        {
+            if(other.include(*rec1_points[i])){
+                *inter_points[i] = *rec1_points[i];
+            }
+            else if(include(*rec2_points[i])){
+                *inter_points[i] = *rec2_points[i];
+            }
+            else{
+                float xValue = (*rec1_points[i]).x <= other.top_right.x && (*rec1_points[i]).x >= other.top_left.x ? (*rec1_points[i]).x: (*rec2_points[i]).x;
+                float yValue = (*rec1_points[i]).y <= other.top_right.y && (*rec1_points[i]).y >= other.down_left.y ? (*rec1_points[i]).y: (*rec2_points[i]).y;
+                *inter_points[i] = Point(xValue,yValue);
             }
         }
-        return new_rect;
+        if(!inter.isValid()){
+            printf("not valid\n");
+
+        }
+        printRectGeogebra(inter);
+        return inter;
     }
 };
 

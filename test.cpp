@@ -7,221 +7,140 @@
 #include "point.h"
 #include "square.h"
 
-std::vector<Rectangle> eraseSquare(Square& target, Square& eraser){
+std::vector<Rectangle> eraseRectangle(Rectangle& target, Rectangle& eraser){
     Rectangle inter = eraser.intersects(target);
+    std::vector<Rectangle> new_rects = {};
     if(inter.isNull()){
         // We don't need to make new squares
         return std::vector<Rectangle>{};
     }
-    if(target<eraser){
-        Rectangle new1 = Rectangle();
-        Rectangle new2 = Rectangle();
-        if(eraser.include(target)){
-            return std::vector<Rectangle>{};
+    if(inter==target){
+        printf("equals\n");
+        return std::vector<Rectangle>{}; 
+    }
+
+    if(eraser.top_left.x <= target.top_left.x && eraser.top_right.x > target.top_left.x){
+        // Eraser is left of target
+        Point stepRight = Point(inter.width(),0);
+        Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        if(target.top_right.x > eraser.top_right.x){
+            // Rectangle right of eraser
+            Rectangle right = Rectangle(target.top_left+stepRight,target.top_right,target.down_left+stepRight,target.down_right);
+            new_rects.insert(new_rects.end(),right);
         }
-        if(target.top_left.x < eraser.top_left.x && target.top_right.x < eraser.top_right.x){
-            // Target is left of eraser
-            if(target.top_left.y < eraser.top_left.y && target.down_left.y>eraser.down_left.y){
-                // Target is not in a corner               
-                new1.top_left = target.top_left;
-                new1.top_right = inter.top_left;
-                new1.down_left = target.down_left;
-                new1.down_right = inter.down_left;
-            }
-            else{
-                // Target is in a left corner
-                // Cuts the new rectangle into two: new1 is the left part, new2 the rest of it
-                Point step = Point(inter.top_left.x - target.top_left.x,0);
-                new1.top_left = target.top_left;
-                new1.top_right = target.top_left + step;
-                new1.down_left = target.down_left;
-                new1.down_right = target.down_left + step;
-                if(target.top_left.y > eraser.top_left.y){
-                    // Top left corner 
-                    // new2 is up of inter
-                    new2.top_left = target.top_left + step;
-                    new2.top_right = target.top_right;
-                    new2.down_left = inter.top_left;
-                    new2.down_right = inter.top_right;
-                }
-                else{
-                    // Down left corner 
-                    // new2 is down of inter
-                    new2.top_left = inter.down_left;
-                    new2.top_right = inter.down_right;
-                    new2.down_left = target.down_left + step;
-                    new2.down_right = target.down_right;
-                }
-            }
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up of eraser
+            Rectangle top = Rectangle(target.top_left,target.top_left+stepRight,target.top_left-heightUp,target.top_left+stepRight-heightUp);
+            new_rects.insert(new_rects.end(),top);
         }
-        else if(target.top_left.x > eraser.top_left.x && target.top_right.x > eraser.top_right.x){
-            // Target is right of eraser
-            if(target.top_right.y < eraser.top_right.y && target.down_right.y>eraser.down_right.y){
-                // Target is not in a corner               
-                new1.top_left = inter.top_right;
-                new1.top_right = target.top_right;
-                new1.down_left = inter.down_right;
-                new1.down_right = target.down_right;
-            }
-            else{
-                // Target is in a right corner
-                // Cuts the new rectangle into two: new1 is the left part, new2 the rest of it
-                Point step = Point(inter.top_right.x - inter.top_left.x,0);
-                new1.top_left = target.top_left + step;
-                new1.top_right = target.top_right;
-                new1.down_left = target.down_left + step;
-                new1.down_right = target.down_right;
-                if(target.top_right.y > eraser.top_right.y){
-                    // Top right corner
-                    new2.top_left = target.top_left;
-                    new2.top_right = target.top_left + step;
-                    new2.down_left = inter.top_left;
-                    new2.down_right = inter.top_right;
-                }
-                else{
-                    // Down right corner
-                    new2.top_left = inter.down_left;
-                    new2.top_right = inter.down_right;
-                    new2.down_left = target.down_left;
-                    new2.down_right = target.down_left + step;
-                }
-            }
-            
+        if(target.down_left.y < eraser.down_left.y){
+            // Rectangle down of eraser
+            Rectangle down = Rectangle(target.down_left+heightDown,target.down_left+heightDown+stepRight,target.down_left,target.down_left+stepRight);
+            new_rects.insert(new_rects.end(),down);
         }
-        else if(target.down_left.y > eraser.down_left.y && target.top_left.y > eraser.top_left.y){
-            // Target is up of eraser (not in a corner)
-            new1.top_left = target.top_left;
-            new1.top_right = target.top_right;
-            new1.down_left = inter.top_left;
-            new1.down_right = inter.top_right;
+    }
+    else if(eraser.top_right.x >= target.top_right.x && eraser.top_left.x < target.top_right.x){
+        // Eraser is right of target
+        Point stepLeft = Point(inter.width(),0);
+        Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left of eraser
+            Rectangle left = Rectangle(target.top_left,target.top_right-stepLeft,target.down_left,target.down_right-stepLeft);
+            new_rects.insert(new_rects.end(),left);
         }
-        else if(target.down_left.y < eraser.down_left.y && target.top_left.y < eraser.top_left.y){
-            new1.top_left = inter.down_left;
-            new1.top_right = inter.down_right;
-            new1.down_left = target.down_left;
-            new1.down_right = target.down_right;
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up of eraser
+            Rectangle top = Rectangle(target.top_right-stepLeft,target.top_right,target.top_right-stepLeft-heightUp,target.top_right-heightUp);
+            new_rects.insert(new_rects.end(),top);
         }
-        else{
-            throw std::logic_error("WAT");
+        if(target.down_left.y < eraser.down_left.y){
+            // Rectangle down of eraser
+            Rectangle down = Rectangle(target.down_right+heightDown-stepLeft,target.down_right+heightDown,target.down_right-stepLeft,target.down_right);
+            new_rects.insert(new_rects.end(),down);
         }
-        if(new2.isNull()){
-            return std::vector<Rectangle> {new1};
+    }
+    else if(eraser.down_left.y<=target.down_left.y && eraser.top_left.y > target.down_left.y){
+        // Eraser is down of target
+        Point stepTop = Point(0,inter.height());
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up
+            Rectangle top = Rectangle(target.top_left,target.top_right,target.down_left+stepTop,target.down_right+stepTop);
+            new_rects.insert(new_rects.end(),top);
         }
-        else{
-            return std::vector<Rectangle> {new1,new2};
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left
+            Rectangle left = Rectangle(target.down_left+stepTop,target.down_left+stepTop+widthLeft,target.down_left,target.down_left+widthLeft);
+            new_rects.insert(new_rects.end(),left);
         }
+        if(target.top_right.x >eraser.top_right.x){
+            // Rectangle right
+            Rectangle right = Rectangle(target.down_right-widthRight+stepTop,target.down_right+stepTop,target.down_right-widthRight,target.down_right);
+            new_rects.insert(new_rects.end(),right);
+        }
+    }
+    else if(eraser.top_left.y>=target.top_left.y && eraser.down_left.y < target.top_left.y){
+        // Eraser is up of target
+        Point stepDown = Point(0,inter.height());
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle down
+            Rectangle down = Rectangle(target.top_left-stepDown,target.top_right-stepDown,target.down_left,target.down_right);
+            new_rects.insert(new_rects.end(),down);
+        }
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left
+            Rectangle left = Rectangle(target.top_left,target.top_left+widthLeft,target.top_left-stepDown,target.top_left-stepDown+widthLeft);
+            new_rects.insert(new_rects.end(),left);
+        }
+        if(target.top_right.x >eraser.top_right.x){
+            // Rectangle right
+            Rectangle right = Rectangle(target.top_right-widthRight,target.top_right,target.top_right-stepDown-widthRight,target.top_right-stepDown);
+            new_rects.insert(new_rects.end(),right);
+        }
+    }
+    else if(eraser==inter){
+        // Eraser is fully included in target
+        Point heightUp = Point(0,target.top_left.y-eraser.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+
+        Rectangle left = Rectangle(target.top_left,target.top_left+widthLeft,target.down_left,target.down_left+widthLeft);
+        Rectangle right = Rectangle(target.top_right-widthRight,target.top_right,target.down_right-widthRight,target.down_right);
+        Rectangle top = Rectangle(target.top_left+widthLeft,target.top_right-widthRight,target.top_left+widthLeft-heightUp,target.top_right-widthRight-heightUp);
+        Rectangle down = Rectangle(target.down_left+widthLeft+heightDown,target.down_right+heightDown-widthRight,target.down_left+widthLeft,target.down_right-widthRight);
+        new_rects.insert(new_rects.end(),left);
+        new_rects.insert(new_rects.end(),right);
+        new_rects.insert(new_rects.end(),top);
+        new_rects.insert(new_rects.end(),down);
     }
     else{
-        // target >= eraser
-        std::vector<Rectangle> new_rects = {};
-        if(target.top_left.x < eraser.top_left.x && target.top_right.x < eraser.top_right.x){
-            // Target is left of eraser
-            Point step = Point(inter.width(),0); 
-            Rectangle recBigRest = Rectangle(target.top_left,target.top_right-step,target.down_left,target.down_right-step);
-            new_rects.insert(new_rects.end(),recBigRest);
-            if(target.top_left.y > eraser.top_left.y && target.down_left.y<eraser.down_left.y){
-                // Target is not in a corner     
-                Rectangle recSmall1 = Rectangle(target.top_right-step,target.top_right,inter.top_left,inter.top_left+step);
-                Rectangle recSmall2 = Rectangle(inter.down_left,inter.down_left+step,target.down_right-step,target.down_right);
-                new_rects.insert(new_rects.end(),recSmall1);
-                new_rects.insert(new_rects.end(),recSmall2);
-            }
-            else{
-                // Target is in a left corner
-                if(target.top_left.y > eraser.top_left.y){
-                    // Top left corner 
-                    Rectangle recSmall = Rectangle(target.top_right-step,target.top_right,inter.top_left,inter.top_left+step);
-                    new_rects.insert(new_rects.end(),recSmall);
-                }
-                else{
-                    // Down left corner 
-                    Rectangle recSmall = Rectangle(inter.down_left,inter.down_left+step,target.down_right-step,target.down_right);
-                    new_rects.insert(new_rects.end(),recSmall);
-                }
-            }
-        }
-        else if(target.top_left.x > eraser.top_left.x && target.top_right.x > eraser.top_right.x){
-            // Target is right of eraser
-            Point step = Point(inter.width(),0);
-            Rectangle recBigRest = Rectangle(target.top_left+step,target.top_right,target.down_left+step,target.down_right);
-            new_rects.insert(new_rects.end(),recBigRest);
-            if(target.top_right.y > eraser.top_right.y && target.down_right.y<eraser.down_right.y){
-                // Target is not in a corner       
-                Rectangle recSmall1 = Rectangle(target.top_left,target.top_left+step,inter.top_right-step,inter.top_right);
-                Rectangle recSmall2 = Rectangle(inter.down_right-step,inter.down_right,target.down_left,target.down_left+step);
-                new_rects.insert(new_rects.end(),recSmall1);
-                new_rects.insert(new_rects.end(),recSmall2);
-            }
-            else{
-                // Target is in a right corner
-                // Cuts the new rectangle into two: new1 is the left part, new2 the rest of it
-                if(target.top_right.y > eraser.top_right.y){
-                    // Top right corner
-                    Rectangle recSmall = Rectangle(target.top_left,target.top_left+step,inter.top_right-step,inter.top_right);
-                    new_rects.insert(new_rects.end(),recSmall);
-                }
-                else{
-                    // Down right corner
-                    Rectangle recSmall = Rectangle(inter.down_right-step,inter.down_right,target.down_left,target.down_left+step);
-                    new_rects.insert(new_rects.end(),recSmall);
-                }
-            }
-        }
-        else if(target.down_left.y > eraser.down_left.y && target.top_left.y > eraser.top_left.y){
-            // Target is up of eraser (not in a corner)
-            Point step = Point(0,inter.height());
-            Rectangle recBig = Rectangle(target.top_left,target.top_right,target.down_left+step,target.down_right+step);
-            Rectangle recSmall1 = Rectangle(target.down_left+step,inter.top_left,target.down_left,inter.down_left);
-            Rectangle recSmall2 = Rectangle(inter.top_right,target.down_right+step,inter.down_right,target.down_right);
-            new_rects.insert(new_rects.end(),recBig);
-            new_rects.insert(new_rects.end(),recSmall1);
-            new_rects.insert(new_rects.end(),recSmall2);
-        }
-        else if(target.down_left.y < eraser.down_left.y && target.top_left.y < eraser.top_left.y){
-            // Target is down of eraser (not in a corner)
-            Point step = Point(0,inter.height());
-            Rectangle recBig = Rectangle(target.top_left-step,target.top_right-step,target.down_left,target.down_right);
-            Rectangle recSmall1 = Rectangle(target.top_left,inter.top_left,target.top_left-step,inter.down_left);
-            printf("in %f %f\n",(target.down_right-step).y,inter.down_right.y);
-            Rectangle recSmall2 = Rectangle(inter.top_right,target.top_right,inter.down_right,target.top_right-step);
-            new_rects.insert(new_rects.end(),recBig);
-            new_rects.insert(new_rects.end(),recSmall1);
-            new_rects.insert(new_rects.end(),recSmall2);
-        }
-        else{
-            // Eraser is fully included in target
-            Point stepLeft = Point(inter.top_left.x-target.top_left.x,0);
-            Point stepInterW = Point(inter.width(),0);
-            Rectangle recBigLeft = Rectangle(target.top_left,target.top_left+stepLeft,target.down_left,target.down_left+stepLeft);
-            Rectangle recBigRight = Rectangle(target.top_left+stepInterW+stepLeft,target.top_right,target.down_left+stepLeft+stepInterW,target.down_right);
-            Rectangle smallRecUp = Rectangle(target.top_left+stepLeft,target.top_left+stepInterW+stepLeft,inter.top_left,inter.top_right);
-            Rectangle smallRecDown = Rectangle(inter.down_left,inter.down_right,target.down_left+stepLeft,target.down_left+stepLeft+stepInterW);
-            new_rects.insert(new_rects.end(),recBigLeft);
-            new_rects.insert(new_rects.end(),recBigRight);
-            new_rects.insert(new_rects.end(),smallRecUp);
-            new_rects.insert(new_rects.end(),smallRecDown);
-        
-        }
-        return new_rects;
+        printf("ERROR in eraseRectangle with these eraser and target: \n");
+        printRectangle(eraser);
+        printRectangle(target);
+        throw std::logic_error("\n");
     }
-    return std::vector<Rectangle> {};
+    return new_rects;
 }
 
 
 int main()
 {
     srand(time(0));
-
-    Square eraser = Square(Point(rand()%10,rand()%10,0),(rand()%20)+1);
-    Square big = Square(Point(0,0),(rand()%20)+1);
+    Rectangle eraser = Rectangle(Point(rand()%5 -5,rand()%5 -5),rand()%10 +1,rand()%10 +1);
+    Rectangle big = Rectangle(Point(rand()%5 -5,rand()%5 -5),rand()%10 +1,rand()%10 +1);
     printRectGeogebra(eraser);
     printRectGeogebra(big);
-    std::vector<Rectangle> result = eraseSquare(big,eraser);
+    std::vector<Rectangle> result = eraseRectangle(big,eraser);
     printf("Erase\n");
     for (size_t i = 0; i < result.size(); i++)
     {
         printRectGeogebra(result[i]);
     }
-
     return 0;
 }
