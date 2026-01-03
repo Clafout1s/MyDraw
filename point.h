@@ -4,15 +4,26 @@
 #include <iostream>
 #include <vector>
 
+const float epsilon = 0.00001;
 
 class Point{
     public:
-        double x;
-        double y;
-        double z;
+        float x;
+        float y;
+        float z;
 
-    Point(double xp,double yp, double zp): x(xp),y(yp),z(zp){};
-    Point(double xp,double yp): x(xp),y(yp),z(0){};
+    Point(float xp,float yp, float zp): x(xp),y(yp),z(zp){
+        if(abs(x-0)<epsilon){
+            x = 0;
+        }
+        if(abs(y-0)<epsilon){
+            y = 0;
+        }
+        if(abs(z-0)<epsilon){
+            z = 0;
+        }
+    };
+    Point(float xp,float yp): Point(xp,yp,0){};
     Point(): x(0),y(0),z(0) {};
     
     Point& operator+=(const Point& other){
@@ -41,8 +52,8 @@ class Point{
         return *this;
     }
 
-    std::vector<double> list(){
-        std::vector<double> points;
+    std::vector<float> list(){
+        std::vector<float> points;
 
         points.insert(points.end(),x);
         points.insert(points.end(),y);

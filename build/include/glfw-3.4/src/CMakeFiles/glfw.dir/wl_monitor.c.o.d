@@ -3,8 +3,8 @@ include/glfw-3.4/src/CMakeFiles/glfw.dir/wl_monitor.c.o: \
  /usr/include/stdc-predef.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/internal.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/../include/GLFW/glfw3.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h /usr/include/stdint.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -19,6 +19,7 @@ include/glfw-3.4/src/CMakeFiles/glfw.dir/wl_monitor.c.o: \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/platform.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/null_platform.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/wl_platform.h \
@@ -32,7 +33,7 @@ include/glfw-3.4/src/CMakeFiles/glfw.dir/wl_monitor.c.o: \
  /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h /usr/include/inttypes.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
  /usr/include/wayland-version.h /usr/include/xkbcommon/xkbcommon.h \
  /usr/include/stdio.h /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
@@ -40,12 +41,13 @@ include/glfw-3.4/src/CMakeFiles/glfw.dir/wl_monitor.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
  /usr/include/xkbcommon/xkbcommon-names.h \
  /usr/include/xkbcommon/xkbcommon-keysyms.h \
  /usr/include/xkbcommon/xkbcommon-compat.h \
  /usr/include/xkbcommon/xkbcommon-compose.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdbool.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/xkb_unicode.h \
  /home/louna/Documents/GraphicsPrograming/MyDraw/include/glfw-3.4/src/posix_poll.h \
  /usr/include/poll.h /usr/include/x86_64-linux-gnu/sys/poll.h \

@@ -25,13 +25,13 @@ int mouseState;
 int screen_width=800;
 int screen_height; // Defined by the width and ratio
 float screen_ratio = 1.f;
-double tile_size = 5;
-double tile_ratio = 1;
+float tile_size = 5;
+float tile_ratio = 1;
 vertexData windowVertices;
 unsigned int MAIN_SC_VBO;
 unsigned int MAIN_SC_EBO;
 
-int sign(double num){
+int sign(float num){
     if(num<0){
         return -1;
     }
@@ -57,29 +57,29 @@ void windowResizeCallback(GLFWwindow* window,int width, int height){
 
 Point nearestTile(Point point,unsigned int size){
     // Takes arguments in pixel coordinates
-    Point center = Point(0,0);
+    Point centerTemp = Point(0,0);
     if(std::fmod(point.x,size) == 0){
-        center.x = abs(point.x - size/2.f);
+        centerTemp.x = abs(point.x - size/2.f);
     }
     if(std::fmod(point.y,size) == 0){
-        center.y = abs(point.y - size/2.f);
+        centerTemp.y = abs(point.y - size/2.f);
     }
-    if(center.x == 0){
+    if(centerTemp.x == 0){
         unsigned int line_square_x = abs(round(point.x/size)*size);
-        center.x = size/2.f *sign(point.x-line_square_x) + (line_square_x);
+        centerTemp.x = size/2.f *sign(point.x-line_square_x) + (line_square_x);
     }
-    if(center.y == 0){
+    if(centerTemp.y == 0){
         unsigned int line_square_y = abs(round(point.y/size)*size);
-        center.y = size/2.f *sign(point.y-line_square_y) + (line_square_y);
+        centerTemp.y = size/2.f *sign(point.y-line_square_y) + (line_square_y);
     }
 
-    return center;
+    return Point(centerTemp.x,centerTemp.y);
 }
 
-Point normalizePosition(Point point_global, double width, double height){
-    Point normalized = Point(point_global.x,point_global.y);
-    normalized.x = 2*normalized.x/width -1;
-    normalized.y = -(2*normalized.y/height -1);
+Point normalizePosition(Point point_global, float width, float height){
+    float normx = 2*point_global.x/width -1;
+    float normy = -(2*point_global.y/height -1);
+    Point normalized = Point(normx,normy);
     return normalized;
 }
 
@@ -92,20 +92,17 @@ void printCursor(GLFWwindow* window){
 
 
 Rectangle calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
-    float width = 2* width_pixel/width_screen; // normalize width
+    float width = 2* (float)width_pixel/width_screen; // normalize width
     float height = width*ratio;
-
     Rectangle square = Rectangle(point,width,height);
-    
-
     return square;
 }
 
 void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
-    std::vector<double> data_list = figure_data.list();
+    std::vector<float> data_list = figure_data.list();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(double)*data_list.size(), &data_list[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*data_list.size(), &data_list[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*figure_data.indices.size(),&figure_data.indices[0],GL_STATIC_DRAW);
@@ -165,25 +162,25 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
 
 void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsigned int EBO){
     // We consider that start and end are in pixel coordinates
-    double denom_a = (end.x - start.x);
-    double a = (end.y - start.y);
+    float denom_a = (end.x - start.x);
+    float a = (end.y - start.y);
     if(denom_a != 0){
         a = a / denom_a;
     }
-    double b = start.y - a * start.x;
-    double length_x = end.x - start.x;
-    double length_y = end.y - start.y;
+    float b = start.y - a * start.x;
+    float length_x = end.x - start.x;
+    float length_y = end.y - start.y;
     
     if(abs(length_x) >= abs(length_y)){
         int n_squares = abs(length_x) / tile_size ;
         for (size_t i = 1; i < n_squares; i++)
         {
-            Point new_center = Point();
-            new_center.x = start.x + (double)sign(length_x)*(i*tile_size); 
-            new_center.y = a * new_center.x + b;
-            new_center = nearestTile(new_center,tile_size);
+            Point new_center_temp = Point();
+            new_center_temp.x = start.x + (float)sign(length_x)*(i*tile_size); 
+            new_center_temp.y = a * new_center_temp.x + b;
+            Point new_center = nearestTile(new_center_temp,tile_size);
             
-            new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
+            new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
             drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
         }
     }
@@ -191,11 +188,11 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
         int n_squares = abs(length_y) / tile_size ;
         for (size_t i = 1; i < n_squares; i++)
         {
-            Point new_center = Point();
-            new_center.y = start.y + (double)sign(length_y)*(i*tile_size);
-            new_center.x = (new_center.y - b)/a;
-            new_center = nearestTile(new_center,tile_size);
-            new_center = normalizePosition(new_center,(double)screen_width,(double)screen_width/screen_ratio);
+            Point new_center_temp = Point();
+            new_center_temp.y = start.y + (float)sign(length_y)*(i*tile_size);
+            new_center_temp.x = (new_center_temp.y - b)/a;
+            Point new_center = nearestTile(new_center_temp,tile_size);
+            new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
             
             drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
         }
@@ -206,17 +203,17 @@ Point last_point;
 bool erase_mod = false;
 bool last_clicked = false;
 
-
 void processInput(GLFWwindow* window){
 
     if(mouseState==GLFW_PRESS){
         if(!erase_mod){
             // Draw
-            Point point = Point(0,0);
-            glfwGetCursorPos(window,&point.x,&point.y);
+            double x,y;
+            glfwGetCursorPos(window,&x,&y);
+            Point point = Point((float)x,(float)y);
             if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
                 point = nearestTile(point,tile_size);
-                Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
+                Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
                 
                 if((last_clicked) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
                     //1.5 for floating point errors: points should always be separated by multiples of tile_size
@@ -224,7 +221,8 @@ void processInput(GLFWwindow* window){
                 }
                 last_point = point;
                 last_clicked = true;
-                drawRect(windowVertices,calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio),MAIN_SC_VBO, MAIN_SC_EBO);
+                Rectangle new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+                drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
             }
             else{
                 last_clicked=false;
@@ -233,18 +231,16 @@ void processInput(GLFWwindow* window){
         
         else{
             // Erase
-            Point point = Point(0,0);
-            glfwGetCursorPos(window,&point.x,&point.y);
-            
+            double x,y;
+            glfwGetCursorPos(window,&x,&y);
+            Point point = Point((float)x,(float)y);
             point = nearestTile(point,tile_size);
-            Point pointNorm = normalizePosition(point,(double)screen_width,(double)screen_width/screen_ratio);
-            /*
-            Square eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
-            size_t del = windowVertices.delete_squares(eraser,tile_size);
-            if(del != 0){
-                nbRects-=del;
-                drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
-            }*/
+            Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
+            Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+            bool added = windowVertices.eraseRectangles(eraser);
+            
+            nbRects=windowVertices.rects.size();
+            drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
         }
     }
     else if(last_clicked){
@@ -290,7 +286,7 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    
+    //std::cout << std::fixed << std::setprecision(5);
     // Window
     screen_height = (int)(screen_width/screen_ratio);
     GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
@@ -331,7 +327,7 @@ int main(int argc, char const *argv[])
 
 
     glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
-    glVertexAttribPointer(0,2,GL_DOUBLE,GL_FALSE,2*sizeof(double),(void*)0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
 
     int count = 2;    

@@ -48,13 +48,13 @@ class Rectangle{
             throw std::invalid_argument("Down left and down right should have the same y coordinates !");
         }
 
-        double w = width();
-        double h = height();
+        float w = width();
+        float h = height();
 
         center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
     };
 
-    Rectangle(Point center,double width,double height){        
+    Rectangle(Point center,float width,float height){        
         center_p = center;
         top_left =  Point(center.x-(width/2), center.y+(height/2));
         top_right = Point(center.x+(width/2), center.y+(height/2));
@@ -68,16 +68,28 @@ class Rectangle{
         }
     }
 
-    Rectangle(Point center,double width):Rectangle(center,width,width){}
+    Rectangle(Point center,float width):Rectangle(center,width,width){}
 
     Rectangle():Rectangle(Point(),0){}
 
-    double width(){
-        return top_right.x - top_left.x;
+    float width(){
+        float wtemp = top_right.x - top_left.x;
+        if(abs(wtemp-0)<epsilon){
+            return 0;
+        }
+        else{
+            return wtemp;
+        }
     }
 
-    double height(){
-        return top_left.y - down_left.y;
+    float height(){
+        float htemp = top_left.y - down_left.y;
+        if(abs(htemp-0)<epsilon){
+            return 0;
+        }
+        else{
+            return htemp;
+        }
     }
 
     bool operator== (const Rectangle& other){
@@ -90,8 +102,8 @@ class Rectangle{
     }
 
     bool isValid(){
-        return (width()>=0 && height()>=0 && top_left.x == down_left.x && top_right.x == down_right.x 
-            && down_left.y == down_right.y && top_left.y == top_right.y);
+        return (width()>=0 && height()>=0 && (float)top_left.x == (float)down_left.x && (float)top_right.x == (float)down_right.x 
+            && (float)down_left.y == (float)down_right.y && (float)top_left.y == (float)top_right.y);
     }
 
     bool isNull(){
@@ -109,19 +121,19 @@ class Rectangle{
 
     
 
-    std::vector<double> list(){
-        std::vector<double> points;
+    std::vector<float> list(){
+        std::vector<float> points;
 
-        std::vector<double> ptl = top_left.list();
+        std::vector<float> ptl = top_left.list();
         points.insert(points.end(),ptl.begin(),ptl.end());
 
-        std::vector<double> ptr = top_right.list();
+        std::vector<float> ptr = top_right.list();
         points.insert(points.end(),ptr.begin(),ptr.end());
 
-        std::vector<double> pdl = down_left.list();
+        std::vector<float> pdl = down_left.list();
         points.insert(points.end(),pdl.begin(),pdl.end());
 
-        std::vector<double> pdr = down_right.list();
+        std::vector<float> pdr = down_right.list();
         points.insert(points.end(),pdr.begin(),pdr.end());
 
         return points;
@@ -129,11 +141,11 @@ class Rectangle{
 
     Rectangle intersects(Rectangle other){
         Rectangle inter = Rectangle();
-        if(top_left.x >= other.top_right.x || other.top_left.x >= top_right.x ||
-            top_left.y <= other.down_left.y || other.top_left.y <= down_left.y){
+        if((float)top_left.x >= (float)other.top_right.x || (float)other.top_left.x >= (float)top_right.x ||
+            (float)top_left.y <= (float)other.down_left.y || (float)other.top_left.y <= (float)down_left.y){
                 // The two rectangles don't intersect with each other
                 return inter;
-            }
+        }
         Point *rec1_points[] = {&top_left,&top_right,&down_left,&down_right};
         Point* rec2_points[] = {&other.top_left,&other.top_right,&other.down_left,&other.down_right};
         Point* inter_points[] = {&inter.top_left,&inter.top_right,&inter.down_left,&inter.down_right};
@@ -152,13 +164,21 @@ class Rectangle{
                 *inter_points[i] = Point(xValue,yValue);
             }
         }
-        if(!inter.isValid()){
-            printf("not valid\n");
-
+        if(!inter.isValid() || inter.isNull()){
+            /*
+            std::cout << std::fixed << std::setprecision(10);
+            printf("\nInter not valid. Printing this Rectangle, other and inter: \n");
+            printRectGeogebra(*this);
+            printRectGeogebra(other);
+            printRectGeogebra(inter);
+            //throw std::logic_error("\n");
+            */
+            return Rectangle();
         }
-        printRectGeogebra(inter);
         return inter;
     }
+
+    
 };
 
 void printRectangle(Rectangle& sq){
@@ -193,7 +213,7 @@ void printRectGeogebra(Rectangle& rect){
 
 class Square: public Rectangle{
     public:
-        Square(Point center,double width):Rectangle(center,width,width){};
+        Square(Point center,float width):Rectangle(center,width,width){};
         Square(Point tl,Point tr,Point dl,Point dr):Rectangle(tl,tr,dl,dr){};
         Square():Rectangle(Point(),0){}
 
@@ -217,10 +237,10 @@ void printSquare(Square& sq){
      */
 inline std::vector<Square> cutToSquares(const Rectangle& rect){
     std::vector<Square> squares_list = {};
-    double l = abs(rect.top_right.x - rect.top_left.x);
-    double h = abs(rect.top_left.y - rect.down_left.y);
-    double min_side = l >= h ? h: l;
-    double max_side = l >= h ? l: h;
+    float l = abs(rect.top_right.x - rect.top_left.x);
+    float h = abs(rect.top_left.y - rect.down_left.y);
+    float min_side = l >= h ? h: l;
+    float max_side = l >= h ? l: h;
     int n = max_side / min_side;
     for (size_t i = 0; i < n; i++)
     {
@@ -238,7 +258,7 @@ inline std::vector<Square> cutToSquares(const Rectangle& rect){
         }
     }
     
-    if((double)n != (max_side / (float)min_side)){
+    if((float)n != (max_side / (float)min_side)){
         // The rectangle is not only composed of squares
         Rectangle rest = Rectangle();
         Square last_add = squares_list.back();
@@ -258,6 +278,165 @@ inline std::vector<Square> cutToSquares(const Rectangle& rect){
         squares_list.insert(squares_list.end(),recursive_squares.begin(),recursive_squares.end());
     }
     return std::vector<Square>(squares_list);
+}
+
+/**
+ * Finds the intersection between target and eraser, and returns a list of rectangles that are the rest of target,
+ *  without the intersection.
+ * If no deletion is needed, the vector is empty.
+ * If there is deletion but no replacement, the vector contains a single NULL Rectangle, at index 0
+ */
+std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
+    Rectangle inter = eraser.intersects(target);
+    std::vector<Rectangle> new_rects = {};
+    if(inter.isNull()){
+        // No deletion needed
+        return std::vector<Rectangle>{};
+    }
+    if(inter==target){
+        // Deletion, but no replacement
+        return std::vector<Rectangle>{Rectangle()}; 
+    }
+
+    if(eraser.top_left.x <= target.top_left.x && eraser.top_right.x > target.top_left.x){
+        // Eraser is left of target
+        Point stepRight = Point(inter.width(),0);
+        Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        if(target.top_right.x > eraser.top_right.x){
+            // Rectangle right of eraser
+            Rectangle right = Rectangle(target.top_left+stepRight,target.top_right,target.down_left+stepRight,target.down_right);
+            if(!right.isNull()){
+                new_rects.insert(new_rects.end(),right);
+            }
+        }
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up of eraser
+            Rectangle top = Rectangle(target.top_left,target.top_left+stepRight,target.top_left-heightUp,target.top_left+stepRight-heightUp);
+            if(!top.isNull()){
+                new_rects.insert(new_rects.end(),top);
+            }
+        }
+        if(target.down_left.y < eraser.down_left.y){
+            // Rectangle down of eraser
+            Rectangle down = Rectangle(target.down_left+heightDown,target.down_left+heightDown+stepRight,target.down_left,target.down_left+stepRight);
+            if(!down.isNull()){
+                new_rects.insert(new_rects.end(),down);
+            }
+        }
+    }
+    else if(eraser.top_right.x >= target.top_right.x && eraser.top_left.x < target.top_right.x){
+        // Eraser is right of target
+        Point stepLeft = Point(inter.width(),0);
+        Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left of eraser
+            Rectangle left = Rectangle(target.top_left,target.top_right-stepLeft,target.down_left,target.down_right-stepLeft);
+            if(!left.isNull()){
+                new_rects.insert(new_rects.end(),left);
+            }
+        }
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up of eraser
+            Rectangle top = Rectangle(target.top_right-stepLeft,target.top_right,target.top_right-stepLeft-heightUp,target.top_right-heightUp);
+            if(!top.isNull()){
+                new_rects.insert(new_rects.end(),top);
+            }
+        }
+        if(target.down_left.y < eraser.down_left.y){
+            // Rectangle down of eraser
+            Rectangle down = Rectangle(target.down_right+heightDown-stepLeft,target.down_right+heightDown,target.down_right-stepLeft,target.down_right);
+            if(!down.isNull()){
+                new_rects.insert(new_rects.end(),down);
+            }
+        }
+    }
+    else if(eraser.down_left.y<=target.down_left.y && eraser.top_left.y > target.down_left.y){
+        // Eraser is down of target
+        Point stepTop = Point(0,inter.height());
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle up
+            Rectangle top = Rectangle(target.top_left,target.top_right,target.down_left+stepTop,target.down_right+stepTop);
+            if(!top.isNull()){
+                new_rects.insert(new_rects.end(),top);
+            }
+        }
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left
+            Rectangle left = Rectangle(target.down_left+stepTop,target.down_left+stepTop+widthLeft,target.down_left,target.down_left+widthLeft);
+            if(!left.isNull()){
+                new_rects.insert(new_rects.end(),left);
+            }
+        }
+        if(target.top_right.x >eraser.top_right.x){
+            // Rectangle right
+            Rectangle right = Rectangle(target.down_right-widthRight+stepTop,target.down_right+stepTop,target.down_right-widthRight,target.down_right);
+            if(!right.isNull()){
+                new_rects.insert(new_rects.end(),right);
+            }
+        }
+    }
+    else if(eraser.top_left.y>=target.top_left.y && eraser.down_left.y < target.top_left.y){
+        // Eraser is up of target
+        Point stepDown = Point(0,inter.height());
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+        if(target.top_left.y > eraser.top_left.y){
+            // Rectangle down
+            Rectangle down = Rectangle(target.top_left-stepDown,target.top_right-stepDown,target.down_left,target.down_right);
+            if(!down.isNull()){
+                new_rects.insert(new_rects.end(),down);
+            }
+        }
+        if(target.top_left.x < eraser.top_left.x){
+            // Rectangle left
+            Rectangle left = Rectangle(target.top_left,target.top_left+widthLeft,target.top_left-stepDown,target.top_left-stepDown+widthLeft);
+            if(!left.isNull()){
+                new_rects.insert(new_rects.end(),left);
+            }
+        }
+        if(target.top_right.x >eraser.top_right.x){
+            // Rectangle right
+            Rectangle right = Rectangle(target.top_right-widthRight,target.top_right,target.top_right-stepDown-widthRight,target.top_right-stepDown);
+            if(!right.isNull()){
+                new_rects.insert(new_rects.end(),right);
+            }
+        }
+    }
+    else if(eraser==inter){
+        // Eraser is fully included in target
+        Point heightUp = Point(0,target.top_left.y-eraser.top_left.y);
+        Point heightDown = Point(0,eraser.down_left.y - target.down_left.y);
+        Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
+        Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
+
+        Rectangle left = Rectangle(target.top_left,target.top_left+widthLeft,target.down_left,target.down_left+widthLeft);
+        Rectangle right = Rectangle(target.top_right-widthRight,target.top_right,target.down_right-widthRight,target.down_right);
+        Rectangle top = Rectangle(target.top_left+widthLeft,target.top_right-widthRight,target.top_left+widthLeft-heightUp,target.top_right-widthRight-heightUp);
+        Rectangle down = Rectangle(target.down_left+widthLeft+heightDown,target.down_right+heightDown-widthRight,target.down_left+widthLeft,target.down_right-widthRight);
+        if(!left.isNull()){
+            new_rects.insert(new_rects.end(),left);
+        }
+        if(!right.isNull()){
+            new_rects.insert(new_rects.end(),right);
+        }
+        if(!top.isNull()){
+            new_rects.insert(new_rects.end(),top);
+        }
+        if(!down.isNull()){
+            new_rects.insert(new_rects.end(),down);
+        }
+    }
+    else{
+        printf("\nERROR in cutFromRectangle: case is not handled !\n Arguments eraser and target: \n");
+        printRectangle(eraser);
+        printRectangle(target);
+        throw std::logic_error("\n");
+    }
+    return new_rects;
 }
 
 #endif
