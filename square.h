@@ -11,28 +11,12 @@ class Rectangle;
 void printRectGeogebra(Rectangle& rect);
 
 class Rectangle{
+    private:
+    float colorR,colorG,colorB;
+    
     public:
     Point top_left,top_right,down_left,down_right,center_p;
-
-    Rectangle(Point tl,Point dr){
-        if(dr.x < tl.x){
-            throw std::invalid_argument("Down right x should be greater than top left x !");
-        }
-        if(dr.y < tl.y){
-            throw std::invalid_argument("Down right y should be greater than top left y !");
-        }
-        if((dr.y == tl.y) || (dr.x==tl.x)){
-            // NULL Rectangle
-            top_left = Point();
-            top_right = Point();
-            down_left = Point();
-            down_right = Point();
-        }
-        top_left = tl;
-        down_right = dr;
-        top_right = Point(down_right.x,top_left.y);
-        down_left = Point(top_left.x,down_right.y);
-    }
+    
 
     Rectangle(Point tl,Point tr,Point dl,Point dr): top_left(tl),top_right(tr),down_left(dl),down_right(dr) {
         if(tl.x != dl.x){
@@ -52,6 +36,10 @@ class Rectangle{
         float h = height();
 
         center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
+
+        colorR = ((double)rand())/RAND_MAX;
+        colorG = ((double)rand())/RAND_MAX;
+        colorB = ((double)rand())/RAND_MAX;
     };
 
     Rectangle(Point center,float width,float height){        
@@ -66,6 +54,9 @@ class Rectangle{
         if(height<0){
             throw std::invalid_argument("Height should not be negative, "+std::to_string(height)+" is incorrect");
         }
+        colorR = ((double)rand())/RAND_MAX;
+        colorG = ((double)rand())/RAND_MAX;
+        colorB = ((double)rand())/RAND_MAX;
     }
 
     Rectangle(Point center,float width):Rectangle(center,width,width){}
@@ -123,17 +114,18 @@ class Rectangle{
 
     std::vector<float> list(){
         std::vector<float> points;
+        std::vector<float> colors = {colorR,colorG,colorB};
 
-        std::vector<float> ptl = top_left.list();
+        std::vector<float> ptl = top_left.list(colors);
         points.insert(points.end(),ptl.begin(),ptl.end());
 
-        std::vector<float> ptr = top_right.list();
+        std::vector<float> ptr = top_right.list(colors);
         points.insert(points.end(),ptr.begin(),ptr.end());
 
-        std::vector<float> pdl = down_left.list();
+        std::vector<float> pdl = down_left.list(colors);
         points.insert(points.end(),pdl.begin(),pdl.end());
 
-        std::vector<float> pdr = down_right.list();
+        std::vector<float> pdr = down_right.list(colors);
         points.insert(points.end(),pdr.begin(),pdr.end());
 
         return points;
@@ -164,6 +156,12 @@ class Rectangle{
                 *inter_points[i] = Point(xValue,yValue);
             }
         }
+        printf("target: \n");
+        printRectGeogebra(other);
+        printf("eraser: \n");
+        printRectGeogebra(*this);
+        printf("inter: \n");
+        printRectGeogebra(inter);
         if(!inter.isValid() || inter.isNull()){
             /*
             std::cout << std::fixed << std::setprecision(10);
@@ -295,10 +293,11 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
     }
     if(inter==target){
         // Deletion, but no replacement
+        printf("Equality\n");
         return std::vector<Rectangle>{Rectangle()}; 
     }
-
-    if(eraser.top_left.x <= target.top_left.x && eraser.top_right.x > target.top_left.x){
+    printf("Other inter\n");
+    if((eraser.top_left.x < target.top_left.x || equalF(eraser.top_left.x,target.top_left.x)) && eraser.top_right.x > target.top_left.x){
         // Eraser is left of target
         Point stepRight = Point(inter.width(),0);
         Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
@@ -325,7 +324,7 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
             }
         }
     }
-    else if(eraser.top_right.x >= target.top_right.x && eraser.top_left.x < target.top_right.x){
+    else if((eraser.top_right.x > target.top_right.x || equalF(eraser.top_right.x,target.top_right.x)) && eraser.top_left.x < target.top_right.x){
         // Eraser is right of target
         Point stepLeft = Point(inter.width(),0);
         Point heightUp = Point(0,target.top_left.y-inter.top_left.y);
@@ -352,7 +351,7 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
             }
         }
     }
-    else if(eraser.down_left.y<=target.down_left.y && eraser.top_left.y > target.down_left.y){
+    else if((eraser.down_left.y<target.down_left.y || equalF(eraser.down_left.y,target.down_left.y)) && eraser.top_left.y > target.down_left.y){
         // Eraser is down of target
         Point stepTop = Point(0,inter.height());
         Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
@@ -379,7 +378,7 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
             }
         }
     }
-    else if(eraser.top_left.y>=target.top_left.y && eraser.down_left.y < target.top_left.y){
+    else if((eraser.top_left.y>target.top_left.y || equalF(eraser.top_left.y,target.top_left.y)) && eraser.down_left.y < target.top_left.y){
         // Eraser is up of target
         Point stepDown = Point(0,inter.height());
         Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);

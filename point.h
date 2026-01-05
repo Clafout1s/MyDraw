@@ -6,6 +6,10 @@
 
 const float epsilon = 0.00001;
 
+bool equalF(float x,float y){
+    return (fabs(x-y) < FLT_EPSILON * fabs(x+y) || fabs(x-y) < FLT_MIN);
+}
+
 class Point{
     public:
         float x;
@@ -44,7 +48,7 @@ class Point{
     }
 
     bool operator==(const Point& b){
-        return (x == b.x && y==b.y && z==b.z);
+        return (equalF(x,b.x) && equalF(y,b.y) && equalF(z,b.z));
     }
 
     Point& operator=(const Point& b){
@@ -52,11 +56,14 @@ class Point{
         return *this;
     }
 
-    std::vector<float> list(){
+    std::vector<float> list(std::vector<float> colors = {1.0f,0,0}){
         std::vector<float> points;
 
         points.insert(points.end(),x);
         points.insert(points.end(),y);
+        points.insert(points.end(),colors[0]);
+        points.insert(points.end(),colors[1]);
+        points.insert(points.end(),colors[2]);
         //points.insert(points.end(),z);
 
         return points;

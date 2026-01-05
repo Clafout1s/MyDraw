@@ -62,7 +62,6 @@ class vertexData{
             {
                 std::vector<Rectangle> result = cutFromRectangle(rects[i],eraser);
                 if(!result.empty()){
-                    printf("No empty\n");
                     erase_list.insert(erase_list.end(),i);
                     for (size_t y = 0; y < result.size(); y++){
 
@@ -81,18 +80,21 @@ class vertexData{
                         
                 }
             }
-            
+            printf("Erase: \n");
             for (size_t e = 0; e < erase_list.size(); e++)
             {
+                printRectGeogebra(rects[erase_list[e]]);
                 rects.erase(rects.begin()+erase_list[e]);
                 indices.erase(indices.end()-6,indices.end());
             }
+            printf("Add: \n");
             for (size_t a = 0; a < add_list.size(); a++)
             {
+                printRectGeogebra(add_list[a]);
                 std::vector<unsigned int> indices_new = {0,1,2,1,2,3};
                 *this+=vertexData(add_list[a],indices_new);
             }
-            
+            printf("-----\n");
             return !erase_list.empty() && !add_list.empty();
         }
         

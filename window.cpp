@@ -9,14 +9,18 @@
 
 const char* vertexSimpleCode = "#version 330 core\n"
     "layout(location=0) in vec3 aPos;\n"
+    "layout (location = 1) in vec3 aColor;\n"
+    "out vec3 vertColor;\n"
     "void main(){\n"
-    "   gl_Position = vec4(aPos,1.0);"
+    "   vertColor = aColor;\n"
+    "   gl_Position = vec4(aPos,1.0);\n"
     "};\n\0";
 
 const char* fragmentSimpleCode = "#version 330 core\n"
     "out vec4 Color;\n"
+    "in vec3 vertColor;\n"
     "void main(){\n"
-    "   Color = vec4(1.0f,0.9f,0.2f,1.0f);\n"
+    "   Color = vec4(vertColor,1.0);\n"
     "};\n\0";
 
 
@@ -273,6 +277,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if(tile_size/2 >= 1){
             tile_size /= 2;
         }
+    }
+    else if(key == GLFW_KEY_0 && action == GLFW_PRESS){
+        printf("Test Rect\n");
+        double x,y;
+        glfwGetCursorPos(window,&x,&y);
+        Point point = Point((float)x,(float)y);
+        point = nearestTile(point,tile_size);
+        Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
+        Rectangle guess = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+        printRectGeogebra(guess);
+        for (size_t i = 0; i < windowVertices.rects.size(); i++)
+        {
+            if(guess == windowVertices.rects[i]){
+                printf("Exists !\n");
+            }
+        }
         
 
     }
@@ -281,12 +301,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 int main(int argc, char const *argv[])
 {
     // Setup
+
+    srand(time(0));
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    //std::cout << std::fixed << std::setprecision(5);
+    std::cout << std::fixed << std::setprecision(8); // To print more digits to float, for debugging purposes
     // Window
     screen_height = (int)(screen_width/screen_ratio);
     GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
@@ -327,8 +350,10 @@ int main(int argc, char const *argv[])
 
 
     glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     int count = 2;    
 

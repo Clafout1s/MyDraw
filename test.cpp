@@ -6,6 +6,7 @@
 #include <time.h>
 #include <math.h>
 #include <iomanip>
+#include <float.h>
 #include "point.h"
 #include "square.h"
 
@@ -57,6 +58,8 @@ Point nearestTile(Point point,unsigned int size){
     return center;
 }
 
+
+
 /*
 (404.332, 352.836)
 Polygone( (-2.42144e-08, 0.15), (0.05, 0.15), (0.05, 0.1), (-2.42144e-08, 0.1), (-2.42144e-08, 0.15))
@@ -64,7 +67,12 @@ Polygone( (-2.42144e-08, 0.15), (0.05, 0.15), (0.05, 0.1), (-2.42144e-08, 0.1), 
 int main()
 {
     srand(time(0));
-
+    std::cout << std::fixed << std::setprecision(8);
+    float x = 0.55000001;
+    float y = 0.54999998;
+    std::cout << x << " " << y << "\n";
+    std::cout << equalF(x,y) << "\n";
+    /*
     Point pixel = Point(404.332, 352.836);
     pixel = nearestTile(pixel,20);
     printPoint(pixel);
@@ -79,5 +87,6 @@ int main()
     if(abs(recNorm.top_left.x - 0) < epsilon){
         printf("Zero !\n");
     }
+    */
     return 0;
 }
