@@ -28,7 +28,7 @@ int nbRects = 0;
 int mouseState;
 int screen_width=800;
 int screen_height; // Defined by the width and ratio
-float screen_ratio = 1.f;
+float screen_ratio = 16/9.f;
 float tile_size = 5;
 float tile_ratio = 1;
 vertexData windowVertices;
@@ -320,7 +320,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
     glfwMakeContextCurrent(app_window);
-    glfwSetWindowAspectRatio(app_window,1,1);    
+    //glfwSetWindowAspectRatio(app_window,screen_ratio,1);    
 
     glfwSetFramebufferSizeCallback(app_window,windowResizeCallback);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){

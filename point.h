@@ -7,7 +7,8 @@
 const float epsilon = 0.00001;
 
 bool equalF(float x,float y){
-    return (fabs(x-y) < FLT_EPSILON * fabs(x+y) || fabs(x-y) < FLT_MIN);
+    float my_epsilon = 0.00001;
+    return (fabs(x-y) <  my_epsilon || fabs(x-y) < FLT_MIN);
 }
 
 class Point{

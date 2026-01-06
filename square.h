@@ -156,12 +156,7 @@ class Rectangle{
                 *inter_points[i] = Point(xValue,yValue);
             }
         }
-        printf("target: \n");
-        printRectGeogebra(other);
-        printf("eraser: \n");
-        printRectGeogebra(*this);
-        printf("inter: \n");
-        printRectGeogebra(inter);
+
         if(!inter.isValid() || inter.isNull()){
             /*
             std::cout << std::fixed << std::setprecision(10);
@@ -293,10 +288,8 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
     }
     if(inter==target){
         // Deletion, but no replacement
-        printf("Equality\n");
         return std::vector<Rectangle>{Rectangle()}; 
     }
-    printf("Other inter\n");
     if((eraser.top_left.x < target.top_left.x || equalF(eraser.top_left.x,target.top_left.x)) && eraser.top_right.x > target.top_left.x){
         // Eraser is left of target
         Point stepRight = Point(inter.width(),0);
@@ -383,7 +376,7 @@ std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser){
         Point stepDown = Point(0,inter.height());
         Point widthLeft = Point(eraser.top_left.x - target.top_left.x,0);
         Point widthRight = Point(target.top_right.x-eraser.top_right.x,0);
-        if(target.top_left.y > eraser.top_left.y){
+        if(target.down_left.y < eraser.down_left.y){
             // Rectangle down
             Rectangle down = Rectangle(target.top_left-stepDown,target.top_right-stepDown,target.down_left,target.down_right);
             if(!down.isNull()){
