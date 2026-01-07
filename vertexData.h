@@ -27,8 +27,10 @@ class vertexData{
             if(std::find(rects.begin(),rects.end(),v2.rects[0])!=rects.end()){
                 return *this;
             }
+
             for (size_t i = 0; i < v2.rects.size(); i++)
             {
+                //eraseRectangles((Rectangle&)v2.rects[i]);
                 rects.push_back(v2.rects[i]);
             }
             unsigned int old_max_i = indices[indices.size()-1];
@@ -37,6 +39,7 @@ class vertexData{
             }
             return *this;
         };
+
         
         vertexData& clear(){
             this->rects.clear();

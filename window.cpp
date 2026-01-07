@@ -35,6 +35,10 @@ vertexData windowVertices;
 unsigned int MAIN_SC_VBO;
 unsigned int MAIN_SC_EBO;
 
+Rectangle borderIndicator;
+unsigned int UI_VBO;
+unsigned int UI_EBO;
+
 int sign(float num){
     if(num<0){
         return -1;
@@ -164,8 +168,9 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
     return shaderFinal;
 }
 
-void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsigned int EBO){
+std::vector<Rectangle> findLine(vertexData& data, Point& start, Point& end, float margin_space, float tile_size){
     // We consider that start and end are in pixel coordinates
+    std::vector<Rectangle> line_rects = {};
     float denom_a = (end.x - start.x);
     float a = (end.y - start.y);
     if(denom_a != 0){
@@ -176,32 +181,31 @@ void drawLine(vertexData& data, Point& start, Point& end,unsigned int VBO, unsig
     float length_y = end.y - start.y;
     
     if(abs(length_x) >= abs(length_y)){
-        int n_squares = abs(length_x) / tile_size ;
+        int n_squares = abs(length_x) / margin_space ;
         for (size_t i = 1; i < n_squares; i++)
         {
             Point new_center_temp = Point();
-            new_center_temp.x = start.x + (float)sign(length_x)*(i*tile_size); 
+            new_center_temp.x = start.x + (float)sign(length_x)*(i*margin_space); 
             new_center_temp.y = a * new_center_temp.x + b;
-            Point new_center = nearestTile(new_center_temp,tile_size);
+            Point new_center = nearestTile(new_center_temp,margin_space);
             
             new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-            drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+            line_rects.insert(line_rects.end(),calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio));
         }
     }
     else{
-        int n_squares = abs(length_y) / tile_size ;
+        int n_squares = abs(length_y) / margin_space ;
         for (size_t i = 1; i < n_squares; i++)
         {
             Point new_center_temp = Point();
-            new_center_temp.y = start.y + (float)sign(length_y)*(i*tile_size);
+            new_center_temp.y = start.y + (float)sign(length_y)*(i*margin_space);
             new_center_temp.x = (new_center_temp.y - b)/a;
-            Point new_center = nearestTile(new_center_temp,tile_size);
+            Point new_center = nearestTile(new_center_temp,margin_space);
             new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-            
-            drawRect(data,calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio),VBO,EBO);
+            line_rects.insert(line_rects.end(),calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio));
         }
     }
-    
+    return line_rects;
 }
 Point last_point;
 bool erase_mod = false;
@@ -210,42 +214,50 @@ bool last_clicked = false;
 void processInput(GLFWwindow* window){
 
     if(mouseState==GLFW_PRESS){
-        if(!erase_mod){
             // Draw
             double x,y;
             glfwGetCursorPos(window,&x,&y);
             Point point = Point((float)x,(float)y);
             if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
-                point = nearestTile(point,tile_size);
+                point = nearestTile(point,5);
                 Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
                 
-                if((last_clicked) && (abs(last_point.x - point.x)>1.5*tile_size || abs(last_point.y - point.y)>1.5*tile_size)){
+                if((last_clicked) && (abs(last_point.x - point.x)>1.5*5 || abs(last_point.y - point.y)>1.5*5)){
                     //1.5 for floating point errors: points should always be separated by multiples of tile_size
-                    drawLine(windowVertices,last_point,point,MAIN_SC_VBO,MAIN_SC_EBO);
+                    std::vector<Rectangle> line_rects = findLine(windowVertices,last_point,point,5.f,tile_size);
+                    for (size_t i = 0; i < line_rects.size(); i++)
+                    {
+                        if(!erase_mod){
+                            drawRect(windowVertices,line_rects[i],MAIN_SC_VBO,MAIN_SC_EBO);
+                        }
+                        else{
+                            bool erased = windowVertices.eraseRectangles(line_rects[i]);
+                            if(erased){
+                                nbRects=windowVertices.rects.size();
+                                drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+                            }
+                        }
+                    }
                 }
                 last_point = point;
                 last_clicked = true;
-                Rectangle new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
-                drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
+                if(!erase_mod){
+                    Rectangle new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+                    drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
+
+                }
+                else{
+                    Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+                    bool erased = windowVertices.eraseRectangles(eraser);
+                    if(erased){
+                        nbRects=windowVertices.rects.size();
+                        drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+                    }
+                }
             }
             else{
                 last_clicked=false;
             }
-        }
-        
-        else{
-            // Erase
-            double x,y;
-            glfwGetCursorPos(window,&x,&y);
-            Point point = Point((float)x,(float)y);
-            point = nearestTile(point,tile_size);
-            Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
-            Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
-            bool added = windowVertices.eraseRectangles(eraser);
-            
-            nbRects=windowVertices.rects.size();
-            drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
-        }
     }
     else if(last_clicked){
         last_clicked=false;
@@ -278,24 +290,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             tile_size /= 2;
         }
     }
-    else if(key == GLFW_KEY_0 && action == GLFW_PRESS){
-        printf("Test Rect\n");
-        double x,y;
-        glfwGetCursorPos(window,&x,&y);
-        Point point = Point((float)x,(float)y);
-        point = nearestTile(point,tile_size);
-        Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
-        Rectangle guess = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
-        printRectGeogebra(guess);
-        for (size_t i = 0; i < windowVertices.rects.size(); i++)
-        {
-            if(guess == windowVertices.rects[i]){
-                printf("Exists !\n");
-            }
-        }
-        
-
-    }
 }
 
 int main(int argc, char const *argv[])
@@ -309,7 +303,8 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    std::cout << std::fixed << std::setprecision(8); // To print more digits to float, for debugging purposes
+    //std::cout << std::fixed << std::setprecision(8); // To print more digits to float, for debugging purposes
+    
     // Window
     screen_height = (int)(screen_width/screen_ratio);
     GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
@@ -335,8 +330,9 @@ int main(int argc, char const *argv[])
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
 
     glGenBuffers(1,&MAIN_SC_VBO);
-
     glGenBuffers(1,&MAIN_SC_EBO);
+    glGenBuffers(1,&UI_VBO);
+    glGenBuffers(1,&UI_EBO);
     
     unsigned int VAO;
     glGenVertexArrays(1,&VAO);
@@ -344,39 +340,66 @@ int main(int argc, char const *argv[])
 
     glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
     glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,MAIN_SC_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,0,0,GL_STATIC_DRAW);
-
-
     glBindBuffer(GL_ARRAY_BUFFER, MAIN_SC_VBO);
     glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    int count = 2;    
+
+    unsigned int UI_VAO;
+    glGenVertexArrays(1,&UI_VAO);
+    glBindVertexArray(UI_VAO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, UI_VBO);
+    glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,UI_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,0,0,GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, UI_VBO);
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
+    glEnableVertexAttribArray(3);
+
+    borderIndicator = Rectangle(Point(-0.5,0.5),0.5);
+    std::vector<float> borderData = borderIndicator.list();
+    std::cout << borderData.size() <<"\n";
+    for (size_t i = 0; i < borderData.size(); i++)
+    {
+        std::cout << borderData[i] <<" ";
+    }
+    std::cout << "\n";
+    std::vector<float> borderIndices = {0,1,2,1,2,3};
+    glBindBuffer(GL_ARRAY_BUFFER, UI_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*borderData.size(), &borderData[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,UI_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*borderIndices.size(),&borderIndices[0],GL_STATIC_DRAW);
+    
 
     while(!glfwWindowShouldClose(app_window)){
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         mouseState = glfwGetMouseButton(app_window, GLFW_MOUSE_BUTTON_LEFT);
         processInput(app_window);
 
         glUseProgram(shaderProgram);
 
+
         glBindVertexArray(VAO);
-        
-        
         glDrawElements(GL_TRIANGLES,nbRects*8,GL_UNSIGNED_INT,0); //number 2: total number of vertices
+
+        glBindVertexArray(UI_VAO);
+        glDrawElements(GL_TRIANGLES,16,GL_UNSIGNED_INT,0); //number 2: total number of vertices
+        
         glBindVertexArray(0);
 
         // Necessary for any window
         glfwPollEvents();
         glfwSwapBuffers(app_window);
     }
-
-    //free(vertices);
     glfwTerminate();
     return 0;
 }

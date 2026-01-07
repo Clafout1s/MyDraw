@@ -88,6 +88,11 @@ class Rectangle{
         down_left==other.down_left && down_right==other.down_right);
     }
 
+    bool operator!= (const Rectangle& other){
+        return !(top_left == other.top_left && top_right==other.top_right && 
+        down_left==other.down_left && down_right==other.down_right);
+    }
+
     bool isSquare(){
         return abs((top_right-top_left).x) == abs((top_left-down_left).y);
     }
@@ -114,7 +119,7 @@ class Rectangle{
 
     std::vector<float> list(){
         std::vector<float> points;
-        std::vector<float> colors = {colorR,colorG,colorB};
+        std::vector<float> colors = {colorR,colorG,colorB};//{9.f,9.f,9.f};
 
         std::vector<float> ptl = top_left.list(colors);
         points.insert(points.end(),ptl.begin(),ptl.end());
