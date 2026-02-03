@@ -77,6 +77,7 @@ class vertexData{
                 }
             }
             std::sort(erase_list.begin(),erase_list.end(),std::greater<int>()); // Sort descending, to avoid issues in deletion indexes
+            
             for (size_t e = 0; e < erase_list.size(); e++)
             {
                 rects.erase(rects.begin()+erase_list[e]);

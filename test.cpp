@@ -73,6 +73,7 @@ int main()
     Rectangle target = Rectangle(Point(0.40000013, 0.11111110),Point(0.44999996, 0.11111110),Point(0.40000013, 0.02222216),Point(0.44999996, 0.02222216));
     Rectangle inter = Rectangle(Point(0.40000013, 0.11111110),Point(0.44999996, 0.11111110),Point(0.40000013, 0.02222222),Point(0.44999996, 0.02222222));
     std::cout<<(inter==target)<< " "<< fabs(0.02222216-0.02222222)<<"\n";
+    std::cout << (int)3.9999 <<"\n";
     /*
     Point pixel = Point(404.332, 352.836);
     pixel = nearestTile(pixel,20);
