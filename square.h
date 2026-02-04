@@ -163,20 +163,45 @@ class Rectangle{
         }
 
         if(!inter.isValid() || inter.isNull()){
-            /*
-            std::cout << std::fixed << std::setprecision(10);
-            printf("\nInter not valid. Printing this Rectangle, other and inter: \n");
-            printRectGeogebra(*this);
-            printRectGeogebra(other);
-            printRectGeogebra(inter);
-            //throw std::logic_error("\n");
-            */
             return Rectangle();
         }
         return inter;
     }
 
-    
+    /**
+     * This function considers that y is up.
+     * It returns a NULL Rectangle when the fusion is impossible
+     */
+    Rectangle fuseRects(Rectangle& other){
+        Rectangle new_rect = Rectangle();
+        if(!equalF(this->width(),other.width()) && !equalF(this->height(),other.height())){
+            // Can't fuse two rectangles which don't share a dimension: returns NULL equivalent
+            return new_rect;
+        }
+        if((*this)==other){
+            return *this;
+        }
+
+        if(this->width() == other.width() && this->top_left.x == other.top_left.x){
+            // Vertical axis: this and other share the same width and positions in x
+
+            new_rect.top_left = Point(this->top_left.x,(this->top_left.y > other.top_left.y)?this->top_left.y:other.top_left.y);
+            new_rect.top_right = Point(this->top_right.x,(this->top_right.y > other.top_right.y)?this->top_right.y:other.top_right.y);
+            new_rect.down_left = Point(this->down_left.x,(this->down_left.y < other.down_left.y)?this->down_left.y:other.down_left.y);
+            new_rect.down_right = Point(this->down_right.x,(this->down_right.y < other.down_right.y)?this->down_right.y:other.down_right.y);
+        }
+        
+        else if(this->height() == other.height() && this->top_left.y == other.top_left.y){
+            // Horizontal axis: this and other share the same height and positions in y
+
+            new_rect.top_left = Point((this->top_left.x < other.top_left.x)?this->top_left.x:other.top_left.x,this->top_left.y);
+            new_rect.top_right = Point((this->top_right.x > other.top_right.x)?this->top_right.x:other.top_right.x,this->top_right.y);
+            new_rect.down_left = Point((this->down_left.x<other.down_left.x)?this->down_left.x:other.down_left.x,this->down_left.y);
+            new_rect.down_right = Point((this->down_right.x>other.down_right.x)?this->down_right.x:other.down_right.x,this->down_right.y);
+        }
+
+        return new_rect;
+    }
 };
 
 void printRectangle(Rectangle& sq){
@@ -208,6 +233,7 @@ void printRectGeogebra(Rectangle& rect){
     printPointGeogebra(rect.top_left);
     std::cout << ")\n";
 }
+
 
 class Square: public Rectangle{
     public:

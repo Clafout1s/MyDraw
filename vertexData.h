@@ -58,6 +58,21 @@ class vertexData{
             return vec;
         }
 
+        bool eraseOneRectangle(Rectangle& eraser){
+            size_t i = 0;
+            bool found = false;
+            while (!false && i<rects.size())
+            {
+                if(rects[i]==eraser){
+                    rects.erase(rects.begin()+i);
+                    indices.erase(indices.end()-6,indices.end());
+                    found = true;
+                }
+                i++;
+            }
+            return found;
+        }
+        
         bool eraseRectangles(Rectangle& eraser){
             std::vector<int> erase_list = {};
             std::vector<Rectangle> add_list = {};

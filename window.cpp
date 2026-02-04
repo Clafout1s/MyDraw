@@ -192,85 +192,64 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
  */
 std::vector<Rectangle> findLine(vertexData& data, Point& start, Point& end, float tile_size){
 
-    //std::cout << "Begin line\n";
     std::vector<Rectangle> line_rects = {};
     float length_x = abs(end.x - start.x);
     float length_y = abs(end.y - start.y);
     Point direction = Point(sign(end.x-start.x),sign(end.y-start.y));
-    
-    if(abs(length_x) >= abs(length_y)){
-        // Horizontal majority in the line
-        int nb_lines_y = 2* floor((length_y+tile_size)/(float)tile_size)-1;
-        float step_y;
-        if(nb_lines_y<=1 && nb_lines_y != 0){
-            nb_lines_y = 2;
-        }
-        if(nb_lines_y==0){
-            nb_lines_y=1;
-            step_y = length_y/2.f;
-        } 
-        else{
-            step_y = length_y/(nb_lines_y-1);
-        }
-    
-        float width_line_x = abs(length_x / (float)nb_lines_y + tile_size);
-        
-        Point central_point = Point();
-        //std::cout << "tile size: "<<tile_size<<"; nb lines: "<< nb_lines_y << "; step: " << step_y << "; length x: " <<length_x<< "; length y: " <<length_y<<"\n";
-        for (size_t i = 0; i < nb_lines_y; i++)
-        {
-            if(nb_lines_y == 1){
-                central_point.y = start.y + direction.y*step_y;
-            }
-            else{
-                central_point.y = start.y + direction.y*i*step_y;
-            }
-            central_point.x = start.x + direction.x*(length_x/(2.f*nb_lines_y)+i*length_x/(nb_lines_y));
+    bool horizontal = length_x>=length_y;
 
-            Point new_center = nearestTile(central_point,MINIMUM_TILE_SIZE);
-            new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-            Rectangle new_rect = calculateRectangle(new_center,width_line_x,tile_size,(float)screen_width,screen_ratio);
-            line_rects.insert(line_rects.end(),new_rect);
-        }
+    // prim: largest axis of the two: x if length x is bigger than length y
+    // sec: smallest axis of the two: y if length x is smaller than length y
+    float length_prim = horizontal? length_x: length_y;
+    float length_sec = horizontal? length_y: length_x;
+    float width_line_prim; 
+    float step_sec; 
+    float nb_lines_sec;
+
+    nb_lines_sec = 2* floor((length_sec+tile_size)/(float)tile_size)-1;
+
+    // Corrections for two and one line
+    if(nb_lines_sec == 1 && length_sec != 0) nb_lines_sec = 2;
+    if(nb_lines_sec == 1 && length_sec == 0){
+        // one line step
+        nb_lines_sec=1;
+        step_sec = length_sec/2.f;
     }
     else{
-        // Vertical majority in the line
-
-        int nb_lines_x = 2* floor((length_x+tile_size)/(float)tile_size)-1;
-        float step_x;
-        if(nb_lines_x<=1 && nb_lines_x != 0){
-            nb_lines_x = 2;
-        }
-        if(nb_lines_x==0){
-            nb_lines_x=1;
-            step_x = length_x/2.f;
-        } 
-        else{
-            step_x = length_x/(nb_lines_x-1);
-        }
-    
-        float width_line_y = abs(length_y / (float)nb_lines_x + tile_size);
-        
-        Point central_point = Point();
-        //std::cout << "tile size: "<<tile_size<<"; nb lines: "<< nb_lines_y << "; step: " << step_y << "; length x: " <<length_x<< "; length y: " <<length_y<<"\n";
-        for (size_t i = 0; i < nb_lines_x; i++)
-        {
-            if(nb_lines_x == 1){
-                central_point.x = start.x + direction.x*step_x;
-            }
-            else{
-                central_point.x = start.x + direction.x*i*step_x;
-            }
-            central_point.y = start.y + direction.y*(length_y/(2.f*nb_lines_x)+i*length_y/(nb_lines_x));
-
-            Point new_center = nearestTile(central_point,MINIMUM_TILE_SIZE);
-            new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-            Rectangle new_rect = calculateRectangle(new_center,tile_size,width_line_y,(float)screen_width,screen_ratio);
-            line_rects.insert(line_rects.end(),new_rect);
-        }
+        // usual step
+        step_sec = length_sec/(nb_lines_sec-1);
     }
 
-    //std::cout << "End line\n\n";
+    width_line_prim = abs(length_prim/(float)nb_lines_sec) + tile_size;
+    Point central_point = Point();
+    for (size_t i = 0; i < nb_lines_sec; i++)
+    {
+        if(horizontal){
+            if(nb_lines_sec == 1){
+                central_point.y = start.y + direction.y*step_sec;
+            }
+            else{
+                central_point.y = start.y + direction.y*i*step_sec;
+            }
+            central_point.x = start.x + direction.x*(length_prim/(2.f*nb_lines_sec)+i*length_prim/nb_lines_sec);
+        }
+        else{
+            if(nb_lines_sec == 1){
+                central_point.x = start.x + direction.x*step_sec;
+            }
+            else{
+                central_point.x = start.x + direction.x*i*step_sec;
+            }
+            central_point.y = start.y + direction.y*(length_prim/(2.f*nb_lines_sec)+i*length_prim/nb_lines_sec);
+        }
+        Point new_center = nearestTile(central_point,MINIMUM_TILE_SIZE);
+        new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
+        Rectangle new_rect;
+        if(horizontal) new_rect = calculateRectangle(new_center,width_line_prim,tile_size,(float)screen_width,screen_ratio);
+        else new_rect = calculateRectangle(new_center,tile_size,width_line_prim,(float)screen_width,screen_ratio);
+        line_rects.insert(line_rects.end(),new_rect);
+        
+    }
     return line_rects;
 }
 Rectangle last_rect;
@@ -293,10 +272,26 @@ void processInput(GLFWwindow* window){
                 if(last_clicked && (abs(last_point.x - point.x)>1.5*MINIMUM_TILE_SIZE || abs(last_point.y - point.y)>1.5*MINIMUM_TILE_SIZE)){
                     //1.5 for floating point errors: points should always be separated by multiples of tile_size
                     std::vector<Rectangle> line_rects = findLine(windowVertices,last_point,point,tile_size);
+                    
+                    Rectangle fused_rect;
                     for (size_t i = 0; i < line_rects.size(); i++)
                     {
                         if(!erase_mod){
-                            drawRect(windowVertices,line_rects[i],MAIN_SC_VBO,MAIN_SC_EBO);
+                            if(i==0){
+                                fused_rect = line_rects[i].fuseRects(last_rect);
+                                if(!fused_rect.isNull()){ 
+                                    windowVertices.eraseOneRectangle(last_rect);
+                                    drawRect(windowVertices,fused_rect,MAIN_SC_VBO,MAIN_SC_EBO);
+                                    last_rect = fused_rect;
+                                    
+                                }
+                                else{
+                                    drawRect(windowVertices,line_rects[i],MAIN_SC_VBO,MAIN_SC_EBO);
+                                }
+                            }
+                            else{
+                                drawRect(windowVertices,line_rects[i],MAIN_SC_VBO,MAIN_SC_EBO);
+                            }
                         }
                         else{
                             bool erased = windowVertices.eraseRectangles(line_rects[i]);
@@ -306,31 +301,53 @@ void processInput(GLFWwindow* window){
                             }
                         }
                     }
+                    if(!erase_mod && !line_rects.empty()){
+                        if(line_rects.size()==1){
+                            last_rect = fused_rect;
+                        }   
+                        else{
+                            last_rect = line_rects[line_rects.size()-1];
+                        }
+                    }
+                    
                 }
                 else{
                     if(!erase_mod){
-                        Rectangle new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
-                        drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
-
+                        Rectangle new_rect;
+                        new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
+                        if(!last_clicked){
+                            drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
+                        }
+                        else{
+                            Rectangle fused_rect = new_rect.fuseRects(last_rect);
+                            if(fused_rect.isNull()){
+                                drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
+                            }
+                            else if(fused_rect != last_rect){
+                                new_rect = fused_rect;
+                                windowVertices.eraseOneRectangle(last_rect);
+                                drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
+                            }
+                            else{
+                                new_rect = fused_rect;
+                            }
+                        }
+                        last_rect = new_rect;
+                                                
                     }
                     else{
                         Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
                         bool erased = windowVertices.eraseRectangles(eraser);
                         
                         if(erased){
-                            printf("%ld\n",windowVertices.indices.size());
                             nbRects=windowVertices.rects.size();
                             drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
                         }
                     }
-            
                 }
                 last_point = point;
-                last_clicked = true;
             }
-            else{
-                last_clicked=false;
-            }
+        last_clicked = true;
     }
     else if(last_clicked){
         last_clicked=false;
