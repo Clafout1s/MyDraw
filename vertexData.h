@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <algorithm>
-#include "point.h"
-#include "square.h"
+#include "rectangle.h"
 
 class vertexData{
     public:
@@ -52,7 +51,7 @@ class vertexData{
 
             for (size_t i = 0; i < rects.size(); i++)
             {
-                std::vector<float> sq_list = rects[i].list();
+                std::vector<float> sq_list = rects[i].list(0,0,0);
                 vec.insert(vec.end(),sq_list.begin(),sq_list.end());
             }
             return vec;

@@ -6,7 +6,6 @@
 #include <math.h>
 #include <cmath>
 #include "vertexData.h"
-#include "point.h"
 
 const char* vertexSimpleCode = "#version 330 core\n"
     "layout(location=0) in vec3 aPos;\n"
@@ -30,9 +29,11 @@ int mouseState;
 int screen_width=800;
 int screen_height; // Defined by the width and ratio
 float screen_ratio = 16/9.f;
-float tile_size = 5;
-float tile_ratio = 1;
-const float MINIMUM_TILE_SIZE = 5;
+
+
+const float MINIMUM_TILE_SIZE = 10;
+const float MAXIMUM_TILE_SIZE = MINIMUM_TILE_SIZE*10;
+float tile_size = MINIMUM_TILE_SIZE;
 
 vertexData windowVertices;
 unsigned int MAIN_SC_VBO;
@@ -333,16 +334,14 @@ void processInput(GLFWwindow* window){
                             }
                         }
                         last_rect = new_rect;
-                                                
                     }
                     else{
                         Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
                         bool erased = windowVertices.eraseRectangles(eraser);
-                        
                         if(erased){
                             nbRects=windowVertices.rects.size();
-                            drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
                         }
+                        drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
                     }
                 }
                 last_point = point;
@@ -371,17 +370,46 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         erase_mod = false;
     }
     else if(key == GLFW_KEY_KP_ADD && action == GLFW_PRESS){
-        printf("Grow size\n");
-        tile_size *= 2;
-    }
-    else if(key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS){
-        printf("Shrink size\n");
-        if(tile_size/2 >= 1){
-            tile_size /= 2;
+        
+        if(tile_size+MINIMUM_TILE_SIZE<=MAXIMUM_TILE_SIZE){
+            tile_size+=MINIMUM_TILE_SIZE;
+            printf("Grow size\n");
         }
     }
-    else if(key == GLFW_KEY_0 && action == GLFW_PRESS){
-        std::cout << windowVertices.rects.size()+3*sizeof(float)+4*3*sizeof(float) << "\n"; 
+    else if(key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS){
+        
+        if(tile_size-MINIMUM_TILE_SIZE>=MINIMUM_TILE_SIZE){
+            tile_size-=MINIMUM_TILE_SIZE;
+            printf("Shrink size\n");
+        }
+    }
+    else if(key == GLFW_KEY_KP_0 && action == GLFW_PRESS){
+        
+        toogleDebugMode();
+        bool debug_active = isDebugModeActive();
+        if(debug_active){
+            printf("Debug mode activated\n");
+        }
+        else{
+            printf("Debug mode disabled\n");
+        }
+        drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+        
+    }
+    else if(key == GLFW_KEY_KP_1 && action == GLFW_PRESS){
+        printf("Color red\n");
+    }
+    else if(key == GLFW_KEY_KP_2 && action == GLFW_PRESS){
+        printf("Color green\n");
+    }
+    else if(key == GLFW_KEY_KP_3 && action == GLFW_PRESS){
+        printf("Color blue\n");
+    }
+    else if(key == GLFW_KEY_KP_9 && action == GLFW_PRESS){
+        printf("Color white\n");
+    }
+    else if(key == GLFW_KEY_KP_8 && action == GLFW_PRESS){
+        printf("Color black\n");
     }
 }
 
@@ -457,7 +485,7 @@ int main(int argc, char const *argv[])
     glEnableVertexAttribArray(3);
 
     borderIndicator = Rectangle(Point(-0.5,0.5),0.5);
-    std::vector<float> borderData = borderIndicator.list();
+    std::vector<float> borderData = borderIndicator.list(2,2,2);
     std::vector<float> borderIndices = {0,1,2,1,2,3};
     glBindBuffer(GL_ARRAY_BUFFER, UI_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*borderData.size(), &borderData[0], GL_STATIC_DRAW);
@@ -474,7 +502,6 @@ int main(int argc, char const *argv[])
 
         glUseProgram(shaderProgram);
 
-
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES,nbRects*8,GL_UNSIGNED_INT,0); //number 2: total number of vertices
 
@@ -490,79 +517,3 @@ int main(int argc, char const *argv[])
     glfwTerminate();
     return 0;
 }
-
-// Old code line for backup: 
-
-
-        /*
-        int n_squares = abs(length_x) / margin_space ;
-        float y_reference_line = start.y;
-        for (size_t i = 0; i < n_squares; i++)
-        {
-            float new_point_x = start.x + (float)sign(length_x)*(i*margin_space);
-            float new_point_y = a * new_point_x + b;
-            Point new_point_nearest = nearestTile(Point(new_point_x,new_point_y),margin_space);
-
-            if(!equalF(new_point_nearest.y,y_reference_line) || i+1==n_squares){
-                Point new_rec_center = (nb_squares_line==1)?
-                    Point(start.x + tile_size/2,y_reference_line) :
-                    Point(start.x + nb_squares_line*(float)sign(length_x)*(margin_space/2.f),y_reference_line);
-                float width = (nb_squares_line==1)? tile_size : nb_squares_line*margin_space;
-
-                new_rec_center = normalizePosition(new_rec_center,(float)screen_width,(float)screen_width/screen_ratio);
-                Rectangle new_rec = calculateRectangle(new_rec_center,width,tile_size,(float)screen_width,screen_ratio);
-                line_rects.insert(line_rects.end(),new_rec);
-
-                nb_squares_line = 1;
-                y_reference_line = new_point_nearest.y;
-
-            }
-            else{
-                nb_squares_line++;
-            }
-        }
-                
-            /*
-            if(abs(other_axis_value-new_rec_point.y)>margin_space){
-                Point new_center = nearestTile(new_rec_point,5);
-                new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-                Rectangle new_rect = calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio);
-                line_rects.insert(line_rects.end(),new_rect);
-                new_rec_length = margin_space;
-                other_axis_value = new_rect.center_p.y;
-            }
-            else{
-                new_rec_point.x+=(float)sign(length_x)*(margin_space/2.f);
-                new_rec_point.y = a * new_rec_point.x+(margin_space/2.f) + b;
-                new_rec_length += margin_space;
-            }
-            /*
-            Point new_center_temp = Point();
-            new_center_temp.x = start.x + (float)sign(length_x)*(i*margin_space); 
-            new_center_temp.y = a * new_center_temp.x + b;
-            Point new_center = nearestTile(new_center_temp,5);
-            length_rec+= margin_space;
-            if(!equalF(new_center.y,other_axis_value) || (i+1==n_squares)){
-                Point rec_center = Point()
-                new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-                Rectangle new_rect = calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio);
-                line_rects.insert(line_rects.end(),new_rect);
-                length_rec = margin_space;
-                other_axis_value = new_rect.center_p.y;
-            }
-            */
-            
-    /*
-    else{
-        int n_squares = abs(length_y) / margin_space ;
-        other_axis_value = start.x;
-        for (size_t i = 1; i < n_squares; i++)
-        {
-            Point new_center_temp = Point();
-            new_center_temp.y = start.y + (float)sign(length_y)*(i*margin_space);
-            new_center_temp.x = (new_center_temp.y - b)/a;
-            Point new_center = nearestTile(new_center_temp,5);
-            new_center = normalizePosition(new_center,(float)screen_width,(float)screen_width/screen_ratio);
-            line_rects.insert(line_rects.end(),calculateSquare(new_center,tile_size,(float)screen_width,screen_ratio));
-        }
-    }*/

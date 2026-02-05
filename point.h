@@ -3,13 +3,12 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
+#include <cfloat>
 
 const float epsilon = 0.00001;
 
-bool equalF(float x,float y){
-    float my_epsilon = 0.00001;
-    return (fabs(x-y) <  my_epsilon || fabs(x-y) < FLT_MIN);
-}
+bool equalF(float x,float y);
 
 class Point{
     public:
@@ -70,22 +69,12 @@ class Point{
         return points;
     }
 
-    
-
 };
 
-Point operator+(const Point& first,const Point& other){
-    return Point(first.x+other.x,first.y+other.y,first.z+other.z);
-}
+void printPoint(const Point& p);
+
+void printPointGeogebra(const Point& p);
 
 
-
-void printPoint(const Point& p){
-    std::cout << p.x <<", "<<p.y<<", "<<p.z<<"\n";
-}
-
-void printPointGeogebra(const Point& p){
-    std::cout << "("<<p.x<<", "<<p.y<<")";
-}
 
 #endif

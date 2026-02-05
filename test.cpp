@@ -7,8 +7,7 @@
 #include <math.h>
 #include <iomanip>
 #include <float.h>
-#include "point.h"
-#include "square.h"
+#include "rectangle.h"
 
 int sign(float num){
     if(num<0){
