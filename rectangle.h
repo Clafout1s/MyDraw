@@ -39,6 +39,7 @@ void printRectangle(Rectangle& sq);
 void printRectGeogebra(Rectangle& rect);
 std::vector<Rectangle> cutFromRectangle(Rectangle& target, Rectangle& eraser);
 void toogleDebugMode();
+void chooseDebugMode(bool active);
 bool isDebugModeActive();
 
 #endif

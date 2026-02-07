@@ -356,6 +356,12 @@ void processInput(GLFWwindow* window){
     }
 }
 
+void drawingModeReset(){
+    erase_mod = false;
+    chooseDebugMode(false);
+    drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_E && action == GLFW_PRESS){
@@ -387,7 +393,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
     else if(key == GLFW_KEY_KP_0 && action == GLFW_PRESS){
-        
         toogleDebugMode();
         bool debug_active = isDebugModeActive();
         if(debug_active){
@@ -400,26 +405,53 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         
     }
     else if(key == GLFW_KEY_KP_1 && action == GLFW_PRESS){
-        printf("Color red\n");
-        active_color={1,0,0};
+        printf("Color orange\n");
+        active_color={1,0.5,0};
+        drawingModeReset();
     }
     else if(key == GLFW_KEY_KP_2 && action == GLFW_PRESS){
-        printf("Color green\n");
-        active_color={0,1,0};
+        printf("Color white\n");
+        active_color={0.98,0.98,0.98};
+        drawingModeReset();
     }
     else if(key == GLFW_KEY_KP_3 && action == GLFW_PRESS){
-        printf("Color blue\n");
-        active_color={0,0,1};
+        printf("Color black\n");
+        active_color={0.05,0.05,0.05};
+        drawingModeReset();
     }
-    else if(key == GLFW_KEY_KP_9 && action == GLFW_PRESS){
-        printf("Color white\n");
-        active_color={1,1,1};
+    else if(key == GLFW_KEY_KP_4 && action == GLFW_PRESS){
+        printf("Color pink\n");
+        active_color={1,0.5,0.8};
+        drawingModeReset();
+    }
+    else if(key == GLFW_KEY_KP_5 && action == GLFW_PRESS){
+        printf("Color yellow\n");
+        active_color={1,0.9,0};
+        drawingModeReset();
+    }
+    else if(key == GLFW_KEY_KP_6 && action == GLFW_PRESS){
+        printf("Color purple\n");
+        active_color={0.4,0,0.7};
+        drawingModeReset();
+    }
+    else if(key == GLFW_KEY_KP_7 && action == GLFW_PRESS){
+        printf("Color red\n");
+        active_color={0.9,0,0};
+        drawingModeReset();
     }
     else if(key == GLFW_KEY_KP_8 && action == GLFW_PRESS){
-        printf("Color black\n");
-        active_color={0,0,0};
+        printf("Color green\n");
+        active_color={0,0.75,0};
+        drawingModeReset();
+    }
+    else if(key == GLFW_KEY_KP_9 && action == GLFW_PRESS){
+        printf("Color blue\n");
+        active_color={0,0,0.9};
+        drawingModeReset();
     }
     else if(key == GLFW_KEY_KP_ENTER && action == GLFW_PRESS){
+        // The custom color input functionality is not used, because of a difficulty of handling inputs on real time. 
+        /*
         std::string colors_str[] = {"","",""};
         float colors[] = {-1,-1,-1};
         std::cout << "Enter your new color components (<red> <green> <blue> , all between 0 and 1, separated by spaces or line breaks)\n";
@@ -443,7 +475,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             active_color = {colors[0],colors[1],colors[2]};
             std::cout << "New color: {"<<colors[0]<<", "<<colors[1]<<", "<<colors[2]<<"}\n";
         }
-        
+        */
     }
 }
 

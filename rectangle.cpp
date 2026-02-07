@@ -220,6 +220,10 @@ void printRectGeogebra(Rectangle& rect){
 void toogleDebugMode(){
     Rectangle::debug = !Rectangle::debug;
 }
+void chooseDebugMode(bool active){
+    Rectangle::debug = active;
+}
+
 bool isDebugModeActive(){
     return Rectangle::debug;
 }
