@@ -5,6 +5,7 @@
 #include <bits/stdc++.h>
 #include <math.h>
 #include <cmath>
+#include <regex>
 #include "vertexData.h"
 
 const char* vertexSimpleCode = "#version 330 core\n"
@@ -42,6 +43,8 @@ unsigned int MAIN_SC_EBO;
 Rectangle borderIndicator;
 unsigned int UI_VBO;
 unsigned int UI_EBO;
+
+Color active_color={0,0,0};
 
 int sign(float num){
     if(num<0){
@@ -116,14 +119,14 @@ void printCursor(GLFWwindow* window){
 Rectangle calculateRectangle(const Point& point,int width_pixel,float height_pixel,float width_screen,float ratio){
     float width = 2* (float)width_pixel/width_screen; // normalize width
     float height = 2* (float)height_pixel/width_screen*ratio;
-    Rectangle square = Rectangle(point,width,height);
+    Rectangle square = Rectangle(point,width,height,active_color);
     return square;
 }
 
 Rectangle calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
     float width = 2* (float)width_pixel/width_screen; // normalize width
     float height = width*ratio;
-    Rectangle square = Rectangle(point,width,height);
+    Rectangle square = Rectangle(point,width,height,active_color);
     return square;
 }
 
@@ -398,18 +401,49 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     else if(key == GLFW_KEY_KP_1 && action == GLFW_PRESS){
         printf("Color red\n");
+        active_color={1,0,0};
     }
     else if(key == GLFW_KEY_KP_2 && action == GLFW_PRESS){
         printf("Color green\n");
+        active_color={0,1,0};
     }
     else if(key == GLFW_KEY_KP_3 && action == GLFW_PRESS){
         printf("Color blue\n");
+        active_color={0,0,1};
     }
     else if(key == GLFW_KEY_KP_9 && action == GLFW_PRESS){
         printf("Color white\n");
+        active_color={1,1,1};
     }
     else if(key == GLFW_KEY_KP_8 && action == GLFW_PRESS){
         printf("Color black\n");
+        active_color={0,0,0};
+    }
+    else if(key == GLFW_KEY_KP_ENTER && action == GLFW_PRESS){
+        std::string colors_str[] = {"","",""};
+        float colors[] = {-1,-1,-1};
+        std::cout << "Enter your new color components (<red> <green> <blue> , all between 0 and 1, separated by spaces or line breaks)\n";
+        std::cin>>colors_str[0]>>colors_str[1]>>colors_str[2];
+        std::cout <<"result: "<< colors[0]<<" "<< colors[1]<<" "<< colors[2]<<" "<<"\n";
+        std::regex float_regex = std::regex("0(.[0-9]*|"")|1");
+        bool valid_inputs = true;
+
+        for (size_t i = 0; i < 3; i++)
+        {
+            if(std::regex_match(colors_str[i],float_regex)){
+                colors[i] = std::stof(colors_str[i]);
+            }
+            else{
+                std::cout << "The input value nb "<<i<<" is incorrect\n";
+                valid_inputs = false;
+            }
+        }
+
+        if(valid_inputs){
+            active_color = {colors[0],colors[1],colors[2]};
+            std::cout << "New color: {"<<colors[0]<<", "<<colors[1]<<", "<<colors[2]<<"}\n";
+        }
+        
     }
 }
 
@@ -484,8 +518,8 @@ int main(int argc, char const *argv[])
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
     glEnableVertexAttribArray(3);
 
-    borderIndicator = Rectangle(Point(-0.5,0.5),0.5);
-    std::vector<float> borderData = borderIndicator.list(2,2,2);
+    borderIndicator = Rectangle(Point(-0.5,0.5),0.5,{2,2,2});
+    std::vector<float> borderData = borderIndicator.list();
     std::vector<float> borderIndices = {0,1,2,1,2,3};
     glBindBuffer(GL_ARRAY_BUFFER, UI_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*borderData.size(), &borderData[0], GL_STATIC_DRAW);

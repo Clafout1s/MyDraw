@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <cfloat>
+#include "color.h"
 
 const float epsilon = 0.00001;
 
@@ -56,14 +57,14 @@ class Point{
         return *this;
     }
 
-    std::vector<float> list(std::vector<float> colors = {1.0f,0,0}){
+    std::vector<float> list(Color color){
         std::vector<float> points;
 
         points.insert(points.end(),x);
         points.insert(points.end(),y);
-        points.insert(points.end(),colors[0]);
-        points.insert(points.end(),colors[1]);
-        points.insert(points.end(),colors[2]);
+        points.insert(points.end(),color.red);
+        points.insert(points.end(),color.green);
+        points.insert(points.end(),color.blue);
         //points.insert(points.end(),z);
 
         return points;

@@ -51,7 +51,7 @@ class vertexData{
 
             for (size_t i = 0; i < rects.size(); i++)
             {
-                std::vector<float> sq_list = rects[i].list(0,0,0);
+                std::vector<float> sq_list = rects[i].list();
                 vec.insert(vec.end(),sq_list.begin(),sq_list.end());
             }
             return vec;

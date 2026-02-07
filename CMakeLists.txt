@@ -7,7 +7,7 @@ include_directories("include/glad/include")
 
 set(gladC "include/glad/src/glad.c")
 
-add_library(Rectangle rectangle.cpp rectangle.h point.cpp point.h)
+add_library(Rectangle rectangle.cpp rectangle.h point.cpp point.h color.h)
 
 add_executable(App window.cpp ${gladC} vertexData.h)
 add_executable(Test test.cpp ${gladC} vertexData.h)

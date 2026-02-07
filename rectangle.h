@@ -5,18 +5,20 @@
 #include <vector>
 #include <tuple>
 #include "point.h"
+#include "color.h"
 
 class Rectangle{
     private:
-    float colorR,colorG,colorB;
+    Color debug_color;
     Point p;
     public:
     Point top_left,top_right,down_left,down_right,center_p;
+    Color main_color;
     inline static bool debug=false;
     
-    Rectangle(Point tl,Point tr,Point dl,Point dr);
-    Rectangle(Point center,float width,float height);
-    Rectangle(Point center,float width);
+    Rectangle(Point tl,Point tr,Point dl,Point dr,Color color);
+    Rectangle(Point center,float width,float height,Color color);
+    Rectangle(Point center,float width,Color color);
     Rectangle();
     float width();
     float height();
@@ -27,7 +29,7 @@ class Rectangle{
     bool isNull();
     bool include(const Rectangle& other);
     bool include(const Point& point);
-    std::vector<float> list(float r,float g,float b);
+    std::vector<float> list();
     Rectangle intersects(Rectangle other);
     Rectangle fuseRects(Rectangle& other);
     
