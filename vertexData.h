@@ -6,18 +6,50 @@
 #include <cassert>
 #include "rectangle.h"
 
+/**
+ * Stores a list of rectangles, and a list of indices, to be fed into OpenGL for rendering.
+ * Technically it can enter different sets of indices together, but it is untested behavior.
+ */
 class vertexData{
+
     public:
         std::vector<Rectangle> rects;
         std::vector<unsigned int> indices;
-
         
         vertexData(){}
+
+        /**
+         * Creates a vertexData with {0,1,2,1,2,3} as its indices (the base indices for a rectangle). 
+         */
         vertexData(Rectangle rec):vertexData(rec,std::vector<unsigned int>{0,1,2,1,2,3}){}
-        vertexData(Rectangle s, std::vector<unsigned int> i): indices(i){
-            rects.insert(rects.begin(),s);
+
+        /**
+         * Creates a vertexData with s as its sole rectangle, and i as its indices. 
+         */
+        vertexData(Rectangle r, std::vector<unsigned int> i): indices(i){
+            rects.insert(rects.begin(),r);
         }
-        vertexData(std::vector<Rectangle> s_list, std::vector<unsigned int> i): rects(s_list), indices(i){}
+
+        /**
+         * Creates a vertexData with a starting list of rectangles, and automatically generates its indices from the base 
+         * indices given in argument.
+         * The argument indices_base are the indices of only one Rectangle.
+         */
+        vertexData(std::vector<Rectangle> s_list, std::vector<unsigned int> indices_base): rects(s_list){
+            unsigned int old_index_max_value=0;
+            for (size_t i = 0; i < s_list.size(); i++)
+            {
+                for(size_t y=0;y<indices_base.size();y++){
+                    indices.push_back(indices_base[y] + 1 + old_index_max_value);
+                }
+                old_index_max_value = indices[indices.size()-1];
+            }
+        }
+
+        /**
+         * Creates a vertexData with a starting list of rectangles, and automatically generates its indices from the base 
+         * indices {0,1,2,1,2,3}.
+         */
         vertexData(std::vector<Rectangle> s_list): rects(s_list){
             std::vector<unsigned int> indices_one_rec = {0,1,2,1,2,3};
             unsigned int old_index_max_value=0;
@@ -29,7 +61,6 @@ class vertexData{
                 old_index_max_value = indices[indices.size()-1];
             }
         }
-
 
         vertexData& operator+=(const vertexData& v2){
             if(this->rects.empty() && this->indices.empty()){
@@ -43,7 +74,7 @@ class vertexData{
 
             for (size_t i = 0; i < v2.rects.size(); i++)
             {
-                //eraseRectangles((Rectangle&)v2.rects[i]);
+                //eraseRectangles((Rectangle&)v2.rects[i]); // Slower but cooler
                 rects.push_back(v2.rects[i]);
             }
             unsigned int old_index_max_value = indices[indices.size()-1];
@@ -53,7 +84,10 @@ class vertexData{
             return *this;
         };
 
-        
+        /**
+         * An alternative to +=, that considers the positions of where to insert the rectangles.
+         * The indices are still added at the end.
+         */
         vertexData& addAtPosition(const vertexData& v2,std::vector<unsigned int> positions){
             assert(positions.size()==v2.rects.size());
             if(this->rects.empty() && this->indices.empty()){
@@ -80,13 +114,18 @@ class vertexData{
             return *this;
         }
 
-        
+        /**
+         * Resets the vertexData to emptiness.
+         */
         vertexData& clear(){
             this->rects.clear();
             this->indices.clear();
             return *this;
         }
 
+        /**
+         * Lists the data of the Rectangles to be usable by OpenGL.
+         */
         std::vector<float> list(){
             std::vector<float> vec;
 
@@ -113,6 +152,9 @@ class vertexData{
             return found;
         }
         
+        /**
+         * Erase all rectangles in the vertexData that are under the eraser (and recuts them when needed).
+         */
         bool eraseRectangles(Rectangle& eraser){
             std::vector<int> erase_list = {};
             std::vector<Rectangle> add_list = {};
@@ -131,8 +173,8 @@ class vertexData{
                     }
                 }
             }
+
             std::sort(erase_list.begin(),erase_list.end(),std::greater<int>()); // Sort descending, to avoid issues in deletion indexes
-            
             for (size_t e = 0; e < erase_list.size(); e++)
             {
                 rects.erase(rects.begin()+erase_list[e]);
@@ -140,21 +182,17 @@ class vertexData{
             }
 
             vertexData new_rects_data = vertexData(add_list);
-            /*
-            for (size_t a = 0; a < add_list.size(); a++)
-            {
-                std::vector<unsigned int> indices_new = {0,1,2,1,2,3};
-                this->addAtPosition(vertexData(add_list[a],indices_new),{add_list_positions[a]});
-            }*/
-
             if(!add_list.empty()) this->addAtPosition(new_rects_data,add_list_positions);
-            //this->addAtPosition(new_rects_data,add_list_positions);
  
             return !erase_list.empty() && !add_list.empty();
         }
 
 
-    //private:
+    private:
+        /** 
+         * Sorts vec_rects by sorting positions.
+         * Both vectors should have the same length, as all of their contents are considered linked by their indexes.
+        */
         std::tuple<std::vector<Rectangle>,std::vector<unsigned int>> sortRectArrayByPosition(const std::vector<Rectangle> vec_rects, const std::vector<unsigned int> positions){
             std::vector<Rectangle> vec_rects_copy = vec_rects;
             std::vector<Rectangle> new_vec_rects={};

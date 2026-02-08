@@ -44,7 +44,7 @@ Rectangle borderIndicator;
 unsigned int UI_VBO;
 unsigned int UI_EBO;
 
-Color active_color={0,0,0};
+Color active_color={0.05,0.05,0.05};
 
 /**
  * Returns the sign of a float.
@@ -622,7 +622,7 @@ int main(int argc, char const *argv[])
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
     glEnableVertexAttribArray(3);
 
-    
+
     // Border setup (unnused)
 
     borderIndicator = Rectangle(Point(-0.5,0.5),0.5,{2,2,2});
