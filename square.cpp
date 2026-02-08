@@ -1,3 +1,6 @@
+/**
+ * Unnused class
+ *  */  
 /*
 class Square: public Rectangle{
     public:

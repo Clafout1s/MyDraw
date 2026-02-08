@@ -1,48 +1,62 @@
 #include "rectangle.h"
-    
 
-Rectangle::Rectangle(Point tl,Point tr,Point dl,Point dr,Color color):top_left(tl),top_right(tr),down_left(dl),down_right(dr),main_color(color){
-    if(tl.x != dl.x){
-        throw std::invalid_argument("Top left and down left should have the same x coordinates !");
-    }
-    if(tr.x != dr.x){
-        throw std::invalid_argument("Top right and down right should have the same x coordinates !");
-    }
-    if(tl.y != tr.y){
-        throw std::invalid_argument("Top left and top right should have the same y coordinates !");
-    }
-    if(dl.y != dr.y){
-        throw std::invalid_argument("Down left and down right should have the same y coordinates !");
-    }
-    float w = width();
-    float h = height();
-    center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
-    debug_color.red = ((double)rand())/RAND_MAX;
-    debug_color.green = ((double)rand())/RAND_MAX;
-    debug_color.blue = ((double)rand())/RAND_MAX;
-}
-
-Rectangle::Rectangle(Point center,float width,float height,Color color):main_color(color){        
-    center_p = center;
-    top_left =  Point(center.x-(width/2), center.y+(height/2));
-    top_right = Point(center.x+(width/2), center.y+(height/2));
-    down_left = Point(center.x-(width/2), center.y-(height/2));
-    down_right = Point(center.x+(width/2), center.y-(height/2));
-    if(width<0){
-        throw std::invalid_argument("Width should not be negative, "+std::to_string(width)+" is incorrect");
-    }
-    if(height<0){
-        throw std::invalid_argument("Height should not be negative, "+std::to_string(height)+" is incorrect");
-    }
-    debug_color.red = ((double)rand())/RAND_MAX;
-    debug_color.green = ((double)rand())/RAND_MAX;
-    debug_color.blue = ((double)rand())/RAND_MAX;
+    /**
+     * Generates a Rectangle based on its 4 corner points.
+     */
+    Rectangle::Rectangle(Point tl,Point tr,Point dl,Point dr,Color color):top_left(tl),top_right(tr),down_left(dl),down_right(dr),main_color(color){
+        if(tl.x != dl.x){
+            throw std::invalid_argument("Top left and down left should have the same x coordinates !");
+        }
+        if(tr.x != dr.x){
+            throw std::invalid_argument("Top right and down right should have the same x coordinates !");
+        }
+        if(tl.y != tr.y){
+            throw std::invalid_argument("Top left and top right should have the same y coordinates !");
+        }
+        if(dl.y != dr.y){
+            throw std::invalid_argument("Down left and down right should have the same y coordinates !");
+        }
+        float w = width();
+        float h = height();
+        center_p = Point(top_left.x + (w/2),top_left.y + (h/2));
+        debug_color.red = ((double)rand())/RAND_MAX;
+        debug_color.green = ((double)rand())/RAND_MAX;
+        debug_color.blue = ((double)rand())/RAND_MAX;
     }
 
+    /**
+     * Generates a Rectangle based on its center point, a width and a height.
+    */
+    Rectangle::Rectangle(Point center,float width,float height,Color color):main_color(color){        
+        center_p = center;
+        top_left =  Point(center.x-(width/2), center.y+(height/2));
+        top_right = Point(center.x+(width/2), center.y+(height/2));
+        down_left = Point(center.x-(width/2), center.y-(height/2));
+        down_right = Point(center.x+(width/2), center.y-(height/2));
+        if(width<0){
+            throw std::invalid_argument("Width should not be negative, "+std::to_string(width)+" is incorrect");
+        }
+        if(height<0){
+            throw std::invalid_argument("Height should not be negative, "+std::to_string(height)+" is incorrect");
+        }
+        debug_color.red = ((double)rand())/RAND_MAX;
+        debug_color.green = ((double)rand())/RAND_MAX;
+        debug_color.blue = ((double)rand())/RAND_MAX;
+    }
+
+    /**
+     * Generates a square Rectangle, with width as height.
+     */
     Rectangle::Rectangle(Point center,float width,Color color):Rectangle(center,width,width,color){}
 
+    /**
+     * Generates a Null Rectangle, an alternative to NULL.
+     */
     Rectangle::Rectangle():Rectangle(Point(),0,{0,0,0}){}
 
+    /**
+     * Returns the width of the Rectangle.
+     */
     float Rectangle::width(){
         float wtemp = top_right.x - top_left.x;
         if(wtemp<epsilon){
@@ -53,6 +67,9 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
         }
     }
 
+    /**
+     * Returns the height of the Rectangle.
+     */
     float Rectangle::height(){
         float htemp = top_left.y - down_left.y;
         if(htemp<epsilon){
@@ -74,27 +91,42 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
     }
 
     bool Rectangle::isSquare(){
-        return abs((top_right-top_left).x) == abs((top_left-down_left).y);
+        return width() == height();
     }
 
+    /**
+     * Returns true if the Rectangle has valid corner points (a Null Rectangle can be valid).
+     */
     bool Rectangle::isValid(){
         return (width()>=0 && height()>=0 && equalF((float)top_left.x,(float)down_left.x) && equalF((float)top_right.x,(float)down_right.x) 
             && equalF((float)down_left.y, (float)down_right.y) && equalF((float)top_left.y, (float)top_right.y));
     }
 
+    /**
+     * Returns true if the Rectangle has either a width or a height of 0 (it is considered a Null Rectangle).
+     */
     bool Rectangle::isNull(){
         return width()==0 || height()==0;
     }
 
+    /**
+     * Returns true if the other Rectangle is entirely within this Rectangle. 
+     */
     bool Rectangle::include(const Rectangle& other){
         return (other.top_left.x >= top_left.x && other.top_right.x <= top_right.x &&
             other.down_left.y >= down_left.y && other.top_left.y <= top_left.y);
     }
 
+    /**
+     * Returns true if the Point is entirely within this Rectangle.
+     */
     bool Rectangle::include(const Point& point){
         return (point.x <= top_right.x && point.x >= top_left.x && point.y <= top_left.y && point.y >= down_left.y);
     }
 
+    /**
+     * Lists the data that will be used by OpenGL to draw the Rectangle (vertices + colors).
+     */
     std::vector<float> Rectangle::list(){
         std::vector<float> points;
         Color colors;
@@ -120,6 +152,10 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
         return points;
     }
 
+    /**
+     * Returns the intersection between this Rectangle, and the other Rectangle, as a Rectangle.
+     * Returns a Null Rectangle if there is no intersection between the two.
+     */
     Rectangle Rectangle::intersects(Rectangle other){
         Rectangle inter = Rectangle();
         if((float)top_left.x >= (float)other.top_right.x || (float)other.top_left.x >= (float)top_right.x ||
@@ -130,7 +166,8 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
         Point *rec1_points[] = {&top_left,&top_right,&down_left,&down_right};
         Point* rec2_points[] = {&other.top_left,&other.top_right,&other.down_left,&other.down_right};
         Point* inter_points[] = {&inter.top_left,&inter.top_right,&inter.down_left,&inter.down_right};
-        bool does_intersects = false;
+        
+        // Checks if one of the points of a Rectangle is included in another, and calculates the points of the intersection.
         for (size_t i = 0; i < 4; i++)
         {
             if(other.include(*rec1_points[i])){
@@ -153,8 +190,12 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
     }
 
     /**
-     * This function considers that y is up.
-     * It returns a NULL Rectangle when the fusion is impossible
+     * Fuses two rectangles together and returns the fusion.
+     * A fusion takes two Rectangles who share a dimension (same x values for example), and creates a Rectangle whith
+     * the same dimension, but takes for its second dimension all the space between the two on that dimension.
+     * Even if the two rectangles aren't intersecting or in contact, a fusion can be done.
+     * It returns a Null Rectangle when the fusion is impossible.
+     * Visual example: |_| |_|  -> |___|
      */
     Rectangle Rectangle::fuseRects(Rectangle& other){
         Rectangle new_rect = Rectangle();
@@ -187,6 +228,9 @@ Rectangle::Rectangle(Point center,float width,float height,Color color):main_col
         return new_rect;
     }
 
+/**
+ * Prints the Rectangle data to the console for debugging.
+ */
 void printRectangle(Rectangle& sq){
     printf("Rectangle: \n");
     printf("    ");
@@ -203,8 +247,12 @@ void printRectangle(Rectangle& sq){
     printf("------\n");
 }
 
+/**
+ * Prints the Rectangle to the console, in the format used by the website GeoGebra.
+ * This means you can copy the console text, and enter it on the website to see the Rectangle in context.
+ */
 void printRectGeogebra(Rectangle& rect){
-    std::cout << "Polygone( ";
+    std::cout << "Polygon( ";
     printPointGeogebra(rect.top_left);
     std::cout << ", ";
     printPointGeogebra(rect.top_right);
@@ -217,20 +265,30 @@ void printRectGeogebra(Rectangle& rect){
     std::cout << ")\n";
 }
 
+/**
+ * Toogles the Debug mode, for all Rectangles.
+ */
 void toogleDebugMode(){
     Rectangle::debug = !Rectangle::debug;
 }
+
+/**
+ * Manually choose the state of the Debug Mode.
+ */
 void chooseDebugMode(bool active){
     Rectangle::debug = active;
 }
 
+/**
+ * Returns true if the Debug mode is on.
+ */
 bool isDebugModeActive(){
     return Rectangle::debug;
 }
 
 /**
  * Finds the intersection between target and eraser, and returns a list of rectangles that are the rest of target,
- *  without the intersection.
+ * without the intersection.
  * If no deletion is needed, the vector is empty.
  * If there is deletion but no replacement, the vector contains a single NULL Rectangle, at index 0
  */
