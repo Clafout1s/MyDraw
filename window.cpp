@@ -25,10 +25,10 @@ const char* fragmentSimpleCode = "#version 330 core\n"
     "};\n\0";
 
 
-int nbRects = 0;
+int nbRects = 0; // Number of rectangles on screen
 int mouseState;
 int screen_width=800;
-int screen_height; // Defined by the width and ratio
+int screen_height; // Defined by the width and ratio at start
 float screen_ratio = 16/9.f;
 
 
@@ -46,6 +46,9 @@ unsigned int UI_EBO;
 
 Color active_color={0,0,0};
 
+/**
+ * Returns the sign of a float.
+ */
 int sign(float num){
     if(num<0){
         return -1;
@@ -58,6 +61,10 @@ int sign(float num){
     }
 }
 
+/**
+ * Called each time the window is resized.
+ * Currently unnused, as the window size is fixed.
+ */
 void windowResizeCallback(GLFWwindow* window,int width, int height){
     glViewport(0,0,width,height);
     
@@ -66,9 +73,12 @@ void windowResizeCallback(GLFWwindow* window,int width, int height){
     screen_height = height;
     // Ratio should be conserved unless fullscreen
 
-    tile_size *= (screen_width/(float)old_width);
-
 }
+
+/**
+ * Returns the corresponding coordinate of where the nearest square of width "size" should be.
+ * The size and coord must be in pixel coordinates.
+ */
 float nearestCoordinate(float old_coord,unsigned int size){
     float new_coord = 0;
     if(std::fmod(old_coord,size) == 0){
@@ -81,8 +91,12 @@ float nearestCoordinate(float old_coord,unsigned int size){
     return new_coord;
 }
 
+/**
+ * Takes a Point in argument, and returns a new Point corresponding to the center of where the 
+ * nearest square of width "size" should be.
+ * The size and point must be in pixel coordinates.
+ */
 Point nearestTile(Point point,unsigned int size){
-    // Takes arguments in pixel coordinates
     Point centerTemp = Point(0,0);
     if(std::fmod(point.x,size) == 0){
         centerTemp.x = abs(point.x - size/2.f);
@@ -102,6 +116,9 @@ Point nearestTile(Point point,unsigned int size){
     return Point(centerTemp.x,centerTemp.y);
 }
 
+/**
+ * Takes a point in pixel size, and converts it to normalized dimensions (between -1 and 1, with y pointing up).
+ */
 Point normalizePosition(Point point_global, float width, float height){
     float normx = 2*point_global.x/width -1;
     float normy = -(2*point_global.y/height -1);
@@ -109,13 +126,18 @@ Point normalizePosition(Point point_global, float width, float height){
     return normalized;
 }
 
-
+/**
+ * Prints the position of the cursor, for debugging purposes.
+ */
 void printCursor(GLFWwindow* window){
     double x,y;
     glfwGetCursorPos(window,&x,&y);
     std::cout << "x: "<<x<<", y: "<<y<<"\n";
 }
 
+/**
+ * Calculates a Rectangle, by taking a normalized point and normalizing the pixel width and height values of the new Rectangle.
+ */
 Rectangle calculateRectangle(const Point& point,int width_pixel,float height_pixel,float width_screen,float ratio){
     float width = 2* (float)width_pixel/width_screen; // normalize width
     float height = 2* (float)height_pixel/width_screen*ratio;
@@ -123,6 +145,10 @@ Rectangle calculateRectangle(const Point& point,int width_pixel,float height_pix
     return square;
 }
 
+/**
+ * Calculates a square shaped Rectangle, by taking a normalized point and normalizing the pixel width and height values of the new Rectangle.
+ * The calculation considers the screen ratio, to make the Rectangle appear as a square on the screen.
+ */
 Rectangle calculateSquare(const Point& point,int width_pixel,float width_screen,float ratio){
     float width = 2* (float)width_pixel/width_screen; // normalize width
     float height = width*ratio;
@@ -130,6 +156,9 @@ Rectangle calculateSquare(const Point& point,int width_pixel,float width_screen,
     return square;
 }
 
+/**
+ * Draws the contents of the vertexData on the screen by calling OpenGL.
+ */
 void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
     std::vector<float> data_list = figure_data.list();
 
@@ -141,6 +170,10 @@ void drawFigure(vertexData& figure_data, unsigned int VBO, unsigned int EBO){
 
 }
 
+/**
+ * Adds the rect to the vertexData, and redraws the vertexData on screen.
+ * The Rectangle must be in normalized coordinates.
+ */
 void drawRect(vertexData& original_data ,Rectangle new_rect, unsigned int VBO, unsigned int EBO){
     // We consider that new_rect is in normalized coordinates
     std::vector<unsigned int> indices = {0,1,2,1,2,3};
@@ -148,9 +181,11 @@ void drawRect(vertexData& original_data ,Rectangle new_rect, unsigned int VBO, u
     original_data+= new_data;
     nbRects++;
     drawFigure(original_data,VBO,EBO);
-    
 }
 
+/**
+ * Handles errors for shader compiling.
+ */
 void checkCompileErrors(unsigned int shader, std::string name){
     int success;
     if(name != "PROGRAM"){
@@ -167,6 +202,9 @@ void checkCompileErrors(unsigned int shader, std::string name){
     }
 }
 
+/**
+ * Loads the shaders for OpenGL.
+ */
 unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShaderCode){
     
     unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -191,8 +229,10 @@ unsigned int loadShaders(const char* vertexShaderCode, const char* fragmentShade
     
     return shaderFinal;
 }
+
 /**
- * We consider that start and end are in pixel coordinates.
+ * Calculates and returns a line of rectangles between two points.
+ * All the arguments must be in pixel coordinates.
  */
 std::vector<Rectangle> findLine(vertexData& data, Point& start, Point& end, float tile_size){
 
@@ -256,38 +296,47 @@ std::vector<Rectangle> findLine(vertexData& data, Point& start, Point& end, floa
     }
     return line_rects;
 }
+
+// Useful variables for processInput
 Rectangle last_rect;
 Point last_point;
 bool erase_mod = false;
 bool last_clicked = false;
 
-void processInput(GLFWwindow* window){
 
+
+/**
+ * Processes the different inputs in a frame to frame basis.
+ * When clicked, all the calculations to draw are done. It can draw or erase depending on the erase_mod, and do so in a line to compensate
+ * for holes in what are supposed to be continuous lines.
+ */
+void processInput(GLFWwindow* window){
     if(mouseState==GLFW_PRESS){
             // Draw
             double x,y;
             glfwGetCursorPos(window,&x,&y);
             Point point = Point((float)x,(float)y);
-            if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
 
+            // If point is on screen
+            if(point.x >=0 && point.x <= screen_width && point.y>=0 && point.y <= screen_height){
                 point = nearestTile(point,MINIMUM_TILE_SIZE);
                 Point pointNorm = normalizePosition(point,(float)screen_width,(float)screen_width/screen_ratio);
 
+                // If the new point is far enough from the last that they need to be linked by lines
                 if(last_clicked && (abs(last_point.x - point.x)>1.5*MINIMUM_TILE_SIZE || abs(last_point.y - point.y)>1.5*MINIMUM_TILE_SIZE)){
-                    //1.5 for floating point errors: points should always be separated by multiples of tile_size
+                    //1.5 for floating point errors: points should always be separated by multiples of MINIMUM_TILE_SIZE
                     std::vector<Rectangle> line_rects = findLine(windowVertices,last_point,point,tile_size);
-                    
                     Rectangle fused_rect;
                     for (size_t i = 0; i < line_rects.size(); i++)
                     {
                         if(!erase_mod){
+                            // Draws a line
                             if(i==0){
                                 fused_rect = line_rects[i].fuseRects(last_rect);
                                 if(!fused_rect.isNull()){ 
                                     windowVertices.eraseOneRectangle(last_rect);
                                     drawRect(windowVertices,fused_rect,MAIN_SC_VBO,MAIN_SC_EBO);
                                     last_rect = fused_rect;
-                                    
                                 }
                                 else{
                                     drawRect(windowVertices,line_rects[i],MAIN_SC_VBO,MAIN_SC_EBO);
@@ -298,6 +347,7 @@ void processInput(GLFWwindow* window){
                             }
                         }
                         else{
+                            // Erases a line
                             bool erased = windowVertices.eraseRectangles(line_rects[i]);
                             if(erased){
                                 nbRects=windowVertices.rects.size();
@@ -313,16 +363,18 @@ void processInput(GLFWwindow* window){
                             last_rect = line_rects[line_rects.size()-1];
                         }
                     }
-                    
                 }
                 else{
+                    // No lines, jut a single Rectangle
                     if(!erase_mod){
+                        // Draws a Rectangle
                         Rectangle new_rect;
                         new_rect = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
                         if(!last_clicked){
                             drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
                         }
                         else{
+                            // Creates a continuous Rectangle with the precedent draws, to reduce vertex counts
                             Rectangle fused_rect = new_rect.fuseRects(last_rect);
                             if(fused_rect.isNull()){
                                 drawRect(windowVertices,new_rect,MAIN_SC_VBO, MAIN_SC_EBO);
@@ -339,6 +391,7 @@ void processInput(GLFWwindow* window){
                         last_rect = new_rect;
                     }
                     else{
+                        // Erases a Rectangle
                         Rectangle eraser = calculateSquare(pointNorm,tile_size,(float)screen_width,screen_ratio);
                         bool erased = windowVertices.eraseRectangles(eraser);
                         if(erased){
@@ -356,12 +409,18 @@ void processInput(GLFWwindow* window){
     }
 }
 
+/**
+ * Disables Erase mode and Debug mode.
+ */
 void drawingModeReset(){
     erase_mod = false;
     chooseDebugMode(false);
     drawFigure(windowVertices,MAIN_SC_VBO,MAIN_SC_EBO);
 }
 
+/**
+ * Listens to different keys for different actions.
+ */
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_E && action == GLFW_PRESS){
@@ -481,9 +540,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(int argc, char const *argv[])
 {
-    // Setup
+    // Setup of OpenGL and the libraries
 
     srand(time(0));
+
+    glfwSetErrorCallback([](int code,const char* desc){
+        std::cerr << "GLFW ERROR: "<<code<<" : "<<desc<<"\n";
+    });
+    if(!glfwInit()){
+        std::cerr << "GLFW init failed\n";
+        return -1;
+    }
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
@@ -492,12 +559,14 @@ int main(int argc, char const *argv[])
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     //std::cout << std::fixed << std::setprecision(8); // To print more digits to float, for debugging purposes
     
-    // Window
+
+    // Setup of the window
+
     screen_height = (int)(screen_width/screen_ratio);
     GLFWwindow* app_window =  glfwCreateWindow(screen_width,screen_height,"MyDraw",NULL,NULL);
     
     if(app_window == NULL){
-        std::cout << "Error during window creation."<<"\n";
+        std::cerr << "Error during window creation."<<"\n";
         glfwTerminate();
         return -1;
     }
@@ -506,13 +575,16 @@ int main(int argc, char const *argv[])
 
     glfwSetFramebufferSizeCallback(app_window,windowResizeCallback);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-        std::cout << "Error during GLAD setup." <<"\n";
+        std::cerr << "Error during GLAD setup." <<"\n";
         return -1;
     }
 
     glfwSetInputMode(app_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
     glfwSetKeyCallback(app_window, key_callback);
     glfwSetInputMode(app_window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
+
+    // Vertices and shaders setup
 
     unsigned int shaderProgram = loadShaders(vertexSimpleCode,fragmentSimpleCode);
 
@@ -550,6 +622,9 @@ int main(int argc, char const *argv[])
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2* sizeof(float)));
     glEnableVertexAttribArray(3);
 
+    
+    // Border setup (unnused)
+
     borderIndicator = Rectangle(Point(-0.5,0.5),0.5,{2,2,2});
     std::vector<float> borderData = borderIndicator.list();
     std::vector<float> borderIndices = {0,1,2,1,2,3};
@@ -560,6 +635,7 @@ int main(int argc, char const *argv[])
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*borderIndices.size(),&borderIndices[0],GL_STATIC_DRAW);
     
 
+    // Main loop
     while(!glfwWindowShouldClose(app_window)){
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
