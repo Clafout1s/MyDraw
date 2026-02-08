@@ -1,6 +1,7 @@
 # MyDraw
 MyDraw is a beginner project that I am making in order to learn the basics of OpenGL.  
-My intent is to make a software similar to MsPaint: drawing, changing brush size and erasing are the only features planned for now.  
+It is a bare bones drawing program, in the inspiration of MS Paint.
+You can draw in multiple colors on the screen, and erase parts of it.
 
 ## Installation
 Clone the present repository, and from your terminal, go to the build folder.  
@@ -8,12 +9,32 @@ Clone the present repository, and from your terminal, go to the build folder.
 Once you launched cmake, you shouldn't have to relaunch it, and should only need a make if you changed the code.   
 Then, launch the ```./App``` executable, and the software window will open up.
 
-## How to use
-Press escape to draw squares. If you maintain the button while moving the mouse, you will draw.   
+## Controls
+- Left click to draw or erase (depends of the mode)
+- D to go into Draw mode
+- E to go into Erase mode
+- C to clear the screen
+- \+ to grow the size of the pencil
+- \- to reduce the size of the pencil
+- Keypad numbers to change colors
+    - 1: Orange
+    - 2: White
+    - 3: Black
+    - 4: Pink
+    - 5: Yellow
+    - 6: Purple
+    - 7: Red
+    - 8: Green
+    - 9: Blue
+    - 0 to activate Debug Mode: allows to see the rectangles with random colors, to see how they are formed and modified
 
-## Showcase
+## Gallery and Showcase
 
-<img width="808" height="625" alt="HelloWorldMyDraw" src="https://github.com/user-attachments/assets/76c5f85d-22af-464c-9464-27a083f2f490" />  
+<img width="801" height="450" alt="Screenshot from 2026-02-07 23-47-56" src="https://github.com/user-attachments/assets/c5d2ab95-9f66-4ce6-8088-5efac1d17137" />  
 
-[MyDrawShowcase1.webm](https://github.com/user-attachments/assets/3f5da816-6691-40eb-b65a-4ac8b6ad2b12)
+<img width="801" height="450" alt="Screenshot from 2026-02-07 23-51-35" src="https://github.com/user-attachments/assets/ae824887-343e-4f50-b496-0cc193285538" />  
+
+<img width="801" height="450" alt="Screenshot from 2026-02-07 23-53-06" src="https://github.com/user-attachments/assets/fa9e0489-1d4b-4ada-9b33-584d799a30d2" />  
+
+[Screencast from 2026-02-07 23-53-29.webm](https://github.com/user-attachments/assets/7cb8ab1f-be8e-4a02-87e2-b42f1d657dc6)
 
